@@ -1,0 +1,13 @@
+build/
+web/
+docs/
+scripts/
+cmake/
+tests/
+.git/
+.github/
+.claude/
+*.md
+_win_build.bat
+_win_build.log
+_wsl_linux_build.sh

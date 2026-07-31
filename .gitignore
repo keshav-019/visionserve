@@ -1,0 +1,84 @@
+# Build outputs
+build/
+out/
+cmake-build-*/
+bin/
+lib/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+compile_commands.json
+
+# Visual Studio
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.user
+*.suo
+
+# VS Code local state
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+
+# Native binaries
+*.exe
+*.dll
+*.lib
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.so
+*.dylib
+*.a
+*.o
+
+# Package caches
+vcpkg_installed/
+.vcpkg-root/
+
+# Test and benchmark output
+test-results/
+benchmark-results/
+coverage/
+
+# Logs
+*.log
+logs/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.swp
+*~
+_wiki_tmp/
+
+# Claude Code local-only state
+.claude/settings.local.json
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Model files and generated artifacts
+models/*.onnx
+models/*.engine
+models/*.bin
+artifacts/
+uploads/
+results/

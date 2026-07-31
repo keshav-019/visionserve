@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: clang-format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format-18
+      - name: Check formatting
+        run: |
+          files=$(find apps include src tests -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' \) 2>/dev/null)
+          if [ -z "$files" ]; then
+            echo "No C++ sources found yet."
+            exit 0
+          fi
+          clang-format-18 --dry-run --Werror $files
+
+  web:
+    name: web (lint, typecheck, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+
+  build:
+    name: ${{ matrix.preset }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            preset: windows-msvc-debug
+          - os: windows-latest
+            preset: windows-msvc-release
+          - os: ubuntu-latest
+            preset: linux-gcc-debug
+          - os: ubuntu-latest
+            preset: linux-clang-debug
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@master
+
+      - name: Enable MSVC dev environment
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Bootstrap vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: c1d80d9cb071c3f4a98c67c1196b137cc5b72918
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
