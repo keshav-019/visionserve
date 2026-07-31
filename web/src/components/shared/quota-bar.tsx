@@ -22,11 +22,18 @@ export function QuotaBar({ quota }: { quota: Quota }) {
         aria-valuemax={100}
         aria-label={`${quota.label}: ${pct.toFixed(0)}% used`}
       >
-        <div className={cn("h-full rounded-full transition-all", tone)} style={{ width: `${pct}%` }} />
+        <div
+          className={cn("h-full rounded-full transition-all", tone)}
+          style={{ width: `${pct}%` }}
+        />
       </div>
       {pct >= 75 && (
         <p className={cn("text-[11px]", pct >= 90 ? "text-destructive" : "text-warning")}>
-          {pct >= 100 ? "Quota exhausted — requests are being rejected." : pct >= 90 ? "90% threshold reached." : "75% threshold reached."}
+          {pct >= 100
+            ? "Quota exhausted — requests are being rejected."
+            : pct >= 90
+              ? "90% threshold reached."
+              : "75% threshold reached."}
         </p>
       )}
     </div>

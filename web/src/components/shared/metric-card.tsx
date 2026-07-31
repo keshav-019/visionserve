@@ -43,7 +43,12 @@ export function MetricCard({
           <p className="text-xs font-medium text-muted-foreground">{label}</p>
           {Icon && <Icon className="size-3.5 text-muted-foreground/70" aria-hidden />}
         </div>
-        <p className={cn("mt-1.5 text-2xl font-semibold tracking-tight font-tnum", mono && "font-mono text-[22px]")}>
+        <p
+          className={cn(
+            "mt-1.5 text-2xl font-semibold tracking-tight font-tnum",
+            mono && "font-mono text-[22px]",
+          )}
+        >
           {value}
         </p>
         <div className="mt-1 flex items-center gap-2 text-xs">

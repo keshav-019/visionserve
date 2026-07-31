@@ -20,8 +20,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { teamQueryOptions } from "@/services/misc";
 import { permissionMatrix, roleLabels } from "@/mocks/data";
 import { formatDate, formatRelative } from "@/lib/format";
@@ -31,9 +44,15 @@ export const Route = createFileRoute("/team")({
   head: () => ({
     meta: [
       { title: "Team — VisionServe" },
-      { name: "description", content: "Manage workspace members, invitations, and role-based permissions." },
+      {
+        name: "description",
+        content: "Manage workspace members, invitations, and role-based permissions.",
+      },
       { property: "og:title", content: "Team — VisionServe" },
-      { property: "og:description", content: "Manage workspace members, invitations, and permissions." },
+      {
+        property: "og:description",
+        content: "Manage workspace members, invitations, and permissions.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -64,14 +83,47 @@ function TeamPage() {
         </div>
       ),
     },
-    { accessorKey: "role", header: "Role", cell: ({ row }) => <span className="rounded-md border bg-muted px-1.5 py-0.5 text-[10px] font-medium">{roleLabels[row.original.role]}</span> },
-    { accessorKey: "status", header: "Status", cell: ({ row }) => <StatusBadge status={row.original.status === "active" ? "healthy" : row.original.status === "invited" ? "queued" : "failed"} label={row.original.status} /> },
+    {
+      accessorKey: "role",
+      header: "Role",
+      cell: ({ row }) => (
+        <span className="rounded-md border bg-muted px-1.5 py-0.5 text-[10px] font-medium">
+          {roleLabels[row.original.role]}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <StatusBadge
+          status={
+            row.original.status === "active"
+              ? "healthy"
+              : row.original.status === "invited"
+                ? "queued"
+                : "failed"
+          }
+          label={row.original.status}
+        />
+      ),
+    },
     {
       accessorKey: "lastActiveAt",
       header: "Last active",
-      cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.lastActiveAt ? formatRelative(row.original.lastActiveAt) : "never"}</span>,
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {row.original.lastActiveAt ? formatRelative(row.original.lastActiveAt) : "never"}
+        </span>
+      ),
     },
-    { accessorKey: "joinedAt", header: "Joined", cell: ({ row }) => <span className="text-xs text-muted-foreground">{formatDate(row.original.joinedAt)}</span> },
+    {
+      accessorKey: "joinedAt",
+      header: "Joined",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">{formatDate(row.original.joinedAt)}</span>
+      ),
+    },
   ];
 
   return (
@@ -90,12 +142,20 @@ function TeamPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Invite to workspace</DialogTitle>
-                <DialogDescription>They will receive an email with a sign-in link valid for 7 days.</DialogDescription>
+                <DialogDescription>
+                  They will receive an email with a sign-in link valid for 7 days.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="invite-email">Email</Label>
-                  <Input id="invite-email" type="email" placeholder="teammate@company.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input
+                    id="invite-email"
+                    type="email"
+                    placeholder="teammate@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="invite-role">Role</Label>
@@ -122,7 +182,9 @@ function TeamPage() {
                   onClick={() => {
                     setInviteOpen(false);
                     setEmail("");
-                    toast.success("Invitation sent", { description: `${email} was invited as ${roleLabels[role]}.` });
+                    toast.success("Invitation sent", {
+                      description: `${email} was invited as ${roleLabels[role]}.`,
+                    });
                   }}
                 >
                   Send invitation
@@ -150,7 +212,8 @@ function TeamPage() {
                 <div>
                   <p className="font-mono text-xs">{inv.email}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    {roleLabels[inv.role]} · invited by {inv.invitedBy} · expires {formatDate(inv.expiresAt)}
+                    {roleLabels[inv.role]} · invited by {inv.invitedBy} · expires{" "}
+                    {formatDate(inv.expiresAt)}
                   </p>
                 </div>
                 <Button
@@ -187,9 +250,15 @@ function TeamPage() {
                   {roles.map((r) => (
                     <TableCell key={r} className="py-1.5 text-center">
                       {row.roles[r] ? (
-                        <Check className="mx-auto size-3.5 text-emerald-600 dark:text-emerald-400" aria-label={`${roleLabels[r]} allowed`} />
+                        <Check
+                          className="mx-auto size-3.5 text-emerald-600 dark:text-emerald-400"
+                          aria-label={`${roleLabels[r]} allowed`}
+                        />
                       ) : (
-                        <Minus className="mx-auto size-3.5 text-muted-foreground/40" aria-label={`${roleLabels[r]} denied`} />
+                        <Minus
+                          className="mx-auto size-3.5 text-muted-foreground/40"
+                          aria-label={`${roleLabels[r]} denied`}
+                        />
                       )}
                     </TableCell>
                   ))}

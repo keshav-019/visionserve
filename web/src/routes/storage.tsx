@@ -5,7 +5,13 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { PageHeader, SectionCard } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { storageQueryOptions } from "@/services/misc";
@@ -16,7 +22,10 @@ export const Route = createFileRoute("/storage")({
   head: () => ({
     meta: [
       { title: "Storage — VisionServe" },
-      { name: "description", content: "Stored uploads, annotated outputs, and retention policies for the workspace." },
+      {
+        name: "description",
+        content: "Stored uploads, annotated outputs, and retention policies for the workspace.",
+      },
       { property: "og:title", content: "Storage — VisionServe" },
       { property: "og:description", content: "Stored objects and retention policies." },
       { property: "og:type", content: "website" },
@@ -41,18 +50,66 @@ function StoragePage() {
   const totalBytes = objects.reduce((sum, o) => sum + o.sizeBytes, 0);
 
   const columns: ColumnDef<StorageObject, unknown>[] = [
-    { accessorKey: "name", header: "Object", cell: ({ row }) => <span className="font-mono text-xs">{row.original.name}</span> },
-    { accessorKey: "type", header: "Type", cell: ({ row }) => <span className="rounded-md border bg-muted px-1.5 py-0.5 font-mono text-[10px]">{row.original.type}</span> },
-    { accessorKey: "owner", header: "Owner", cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">{row.original.owner}</span> },
+    {
+      accessorKey: "name",
+      header: "Object",
+      cell: ({ row }) => <span className="font-mono text-xs">{row.original.name}</span>,
+    },
+    {
+      accessorKey: "type",
+      header: "Type",
+      cell: ({ row }) => (
+        <span className="rounded-md border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+          {row.original.type}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "owner",
+      header: "Owner",
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">{row.original.owner}</span>
+      ),
+    },
     {
       accessorKey: "jobId",
       header: "Source",
-      cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">{row.original.jobId ?? row.original.batchId ?? "—"}</span>,
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">
+          {row.original.jobId ?? row.original.batchId ?? "—"}
+        </span>
+      ),
     },
-    { accessorKey: "sizeBytes", header: "Size", cell: ({ row }) => <span className="font-mono text-xs font-tnum">{formatBytes(row.original.sizeBytes)}</span> },
-    { accessorKey: "provider", header: "Provider", cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.provider}</span> },
-    { accessorKey: "createdAt", header: "Created", cell: ({ row }) => <span className="text-xs text-muted-foreground">{formatRelative(row.original.createdAt)}</span> },
-    { accessorKey: "expiresAt", header: "Expires", cell: ({ row }) => <span className="text-xs text-muted-foreground">{formatDate(row.original.expiresAt)}</span> },
+    {
+      accessorKey: "sizeBytes",
+      header: "Size",
+      cell: ({ row }) => (
+        <span className="font-mono text-xs font-tnum">{formatBytes(row.original.sizeBytes)}</span>
+      ),
+    },
+    {
+      accessorKey: "provider",
+      header: "Provider",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">{row.original.provider}</span>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {formatRelative(row.original.createdAt)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "expiresAt",
+      header: "Expires",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">{formatDate(row.original.expiresAt)}</span>
+      ),
+    },
   ];
 
   return (
@@ -86,7 +143,10 @@ function StoragePage() {
         emptyDescription="Uploads and outputs appear here as jobs complete."
       />
 
-      <SectionCard title="Retention policies" description="Automatic cleanup applied by the sweeper every 15 minutes">
+      <SectionCard
+        title="Retention policies"
+        description="Automatic cleanup applied by the sweeper every 15 minutes"
+      >
         <ul className="divide-y">
           {policies.map((p) => (
             <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
@@ -97,7 +157,11 @@ function StoragePage() {
               <div className="flex items-center gap-6">
                 <span className="font-mono text-xs font-tnum">{p.retentionDays} days</span>
                 <div className="flex items-center gap-2">
-                  <Switch id={`retention-${p.id}`} defaultChecked={p.autoDelete} aria-label={`Auto-delete ${p.resource}`} />
+                  <Switch
+                    id={`retention-${p.id}`}
+                    defaultChecked={p.autoDelete}
+                    aria-label={`Auto-delete ${p.resource}`}
+                  />
                   <Label htmlFor={`retention-${p.id}`} className="text-xs text-muted-foreground">
                     Auto-delete
                   </Label>

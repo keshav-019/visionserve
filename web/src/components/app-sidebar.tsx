@@ -112,7 +112,12 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-3 py-3">
-        <Link to="/" onClick={closeMobile} className="flex items-center gap-2.5" aria-label="VisionServe dashboard">
+        <Link
+          to="/"
+          onClick={closeMobile}
+          className="flex items-center gap-2.5"
+          aria-label="VisionServe dashboard"
+        >
           <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Aperture className="size-4.5" aria-hidden />
           </span>
@@ -163,16 +168,23 @@ export function AppSidebar() {
           </SidebarMenu>
         </div>
         <SidebarSeparator />
-        <div className={cn("flex items-center gap-2.5 px-3 py-3", collapsed && "justify-center px-0")}>
+        <div
+          className={cn("flex items-center gap-2.5 px-3 py-3", collapsed && "justify-center px-0")}
+        >
           <Avatar className="size-7 border">
             <AvatarFallback className="bg-secondary text-[11px] font-semibold">
-              {currentUser.name.split(" ").map((p) => p[0]).join("")}
+              {currentUser.name
+                .split(" ")
+                .map((p) => p[0])
+                .join("")}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate text-xs font-medium">{currentUser.name}</p>
-              <p className="truncate text-[11px] text-muted-foreground capitalize">{currentUser.role.replace("_", " ")}</p>
+              <p className="truncate text-[11px] text-muted-foreground capitalize">
+                {currentUser.role.replace("_", " ")}
+              </p>
             </div>
           )}
         </div>

@@ -9,8 +9,23 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Inbox, Search } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Inbox,
+  Search,
+} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -71,7 +86,10 @@ export function DataTable<T>({
         <div className="flex flex-wrap items-center gap-2">
           {searchable && (
             <div className="relative min-w-52 flex-1 sm:max-w-xs">
-              <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden />
+              <Search
+                className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
               <Input
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)}
@@ -133,7 +151,12 @@ export function DataTable<T>({
             ) : table.getRowModel().rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="p-0">
-                  <EmptyState icon={Inbox} title={emptyTitle} description={emptyDescription} className="py-10" />
+                  <EmptyState
+                    icon={Inbox}
+                    title={emptyTitle}
+                    description={emptyDescription}
+                    className="py-10"
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -158,7 +181,8 @@ export function DataTable<T>({
       {table.getPageCount() > 1 && (
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span className="font-tnum">
-            Page {pageIndex + 1} of {table.getPageCount()} · {table.getFilteredRowModel().rows.length} rows
+            Page {pageIndex + 1} of {table.getPageCount()} ·{" "}
+            {table.getFilteredRowModel().rows.length} rows
           </span>
           <div className="flex items-center gap-1">
             <Button

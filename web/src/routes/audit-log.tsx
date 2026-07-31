@@ -7,7 +7,13 @@ import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { EnvBadge } from "@/components/shared/env-badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { auditLogsQueryOptions } from "@/services/misc";
 import { formatDateTime } from "@/lib/format";
 import type { AuditLog } from "@/lib/types";
@@ -16,7 +22,11 @@ export const Route = createFileRoute("/audit-log")({
   head: () => ({
     meta: [
       { title: "Audit Log — VisionServe" },
-      { name: "description", content: "Immutable audit trail of every action taken in the workspace: actor, resource, and result." },
+      {
+        name: "description",
+        content:
+          "Immutable audit trail of every action taken in the workspace: actor, resource, and result.",
+      },
       { property: "og:title", content: "Audit Log — VisionServe" },
       { property: "og:description", content: "Immutable audit trail of workspace actions." },
       { property: "og:type", content: "website" },
@@ -30,9 +40,23 @@ export const Route = createFileRoute("/audit-log")({
 });
 
 const columns: ColumnDef<AuditLog, unknown>[] = [
-  { accessorKey: "ts", header: "Time", cell: ({ row }) => <span className="font-mono text-xs whitespace-nowrap">{formatDateTime(row.original.ts)}</span> },
-  { accessorKey: "actor", header: "Actor", cell: ({ row }) => <span className="font-mono text-xs">{row.original.actor}</span> },
-  { accessorKey: "action", header: "Action", cell: ({ row }) => <span className="text-xs font-medium">{row.original.action}</span> },
+  {
+    accessorKey: "ts",
+    header: "Time",
+    cell: ({ row }) => (
+      <span className="font-mono text-xs whitespace-nowrap">{formatDateTime(row.original.ts)}</span>
+    ),
+  },
+  {
+    accessorKey: "actor",
+    header: "Actor",
+    cell: ({ row }) => <span className="font-mono text-xs">{row.original.actor}</span>,
+  },
+  {
+    accessorKey: "action",
+    header: "Action",
+    cell: ({ row }) => <span className="text-xs font-medium">{row.original.action}</span>,
+  },
   {
     accessorKey: "resource",
     header: "Resource",
@@ -43,14 +67,29 @@ const columns: ColumnDef<AuditLog, unknown>[] = [
       </span>
     ),
   },
-  { accessorKey: "environment", header: "Env", cell: ({ row }) => <EnvBadge env={row.original.environment} /> },
-  { accessorKey: "ip", header: "IP", cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">{row.original.ip}</span> },
+  {
+    accessorKey: "environment",
+    header: "Env",
+    cell: ({ row }) => <EnvBadge env={row.original.environment} />,
+  },
+  {
+    accessorKey: "ip",
+    header: "IP",
+    cell: ({ row }) => (
+      <span className="font-mono text-xs text-muted-foreground">{row.original.ip}</span>
+    ),
+  },
   {
     accessorKey: "result",
     header: "Result",
     cell: ({ row }) => {
       const r = row.original.result;
-      return <StatusBadge status={r === "success" ? "succeeded" : r === "denied" ? "failed" : "degraded"} label={r} />;
+      return (
+        <StatusBadge
+          status={r === "success" ? "succeeded" : r === "denied" ? "failed" : "degraded"}
+          label={r}
+        />
+      );
     },
   },
 ];

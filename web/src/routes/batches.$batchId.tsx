@@ -16,14 +16,23 @@ import { DataTable } from "@/components/shared/data-table";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { batchQueryOptions } from "@/services/batches";
-import { formatDateTime, formatDuration, formatMs, formatNumber, formatPercent } from "@/lib/format";
+import {
+  formatDateTime,
+  formatDuration,
+  formatMs,
+  formatNumber,
+  formatPercent,
+} from "@/lib/format";
 import type { BatchItem } from "@/lib/types";
 
 export const Route = createFileRoute("/batches/$batchId")({
   head: ({ params }) => ({
     meta: [
       { title: `${params.batchId} — Batches — VisionServe` },
-      { name: "description", content: `Batch ${params.batchId}: per-item progress, failures, and completion details.` },
+      {
+        name: "description",
+        content: `Batch ${params.batchId}: per-item progress, failures, and completion details.`,
+      },
       { property: "og:title", content: `${params.batchId} — VisionServe` },
       { property: "og:description", content: "Batch per-item progress and completion details." },
       { property: "og:type", content: "website" },
@@ -37,12 +46,47 @@ export const Route = createFileRoute("/batches/$batchId")({
 });
 
 const itemColumns: ColumnDef<BatchItem, unknown>[] = [
-  { accessorKey: "n", header: "#", cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">{row.original.n}</span> },
-  { accessorKey: "filename", header: "File", cell: ({ row }) => <span className="font-mono text-xs">{row.original.filename}</span> },
-  { accessorKey: "status", header: "Status", cell: ({ row }) => <StatusBadge status={row.original.status} /> },
-  { accessorKey: "resultCount", header: "Results", cell: ({ row }) => <span className="font-mono text-xs font-tnum">{row.original.resultCount}</span> },
-  { accessorKey: "inferenceMs", header: "Inference", cell: ({ row }) => <span className="font-mono text-xs font-tnum">{formatMs(row.original.inferenceMs)}</span> },
-  { accessorKey: "error", header: "Error", cell: ({ row }) => (row.original.error ? <span className="font-mono text-xs text-destructive">{row.original.error}</span> : <span className="text-muted-foreground">—</span>) },
+  {
+    accessorKey: "n",
+    header: "#",
+    cell: ({ row }) => (
+      <span className="font-mono text-xs text-muted-foreground">{row.original.n}</span>
+    ),
+  },
+  {
+    accessorKey: "filename",
+    header: "File",
+    cell: ({ row }) => <span className="font-mono text-xs">{row.original.filename}</span>,
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => <StatusBadge status={row.original.status} />,
+  },
+  {
+    accessorKey: "resultCount",
+    header: "Results",
+    cell: ({ row }) => (
+      <span className="font-mono text-xs font-tnum">{row.original.resultCount}</span>
+    ),
+  },
+  {
+    accessorKey: "inferenceMs",
+    header: "Inference",
+    cell: ({ row }) => (
+      <span className="font-mono text-xs font-tnum">{formatMs(row.original.inferenceMs)}</span>
+    ),
+  },
+  {
+    accessorKey: "error",
+    header: "Error",
+    cell: ({ row }) =>
+      row.original.error ? (
+        <span className="font-mono text-xs text-destructive">{row.original.error}</span>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      ),
+  },
 ];
 
 function BatchDetailPage() {
@@ -86,7 +130,8 @@ function BatchDetailPage() {
         }
         description={
           <span className="font-mono text-xs">
-            {batch.modelId}@{batch.modelVersion} · {formatNumber(batch.totalFiles)} files · by {batch.owner}
+            {batch.modelId}@{batch.modelVersion} · {formatNumber(batch.totalFiles)} files · by{" "}
+            {batch.owner}
           </span>
         }
         actions={
@@ -102,14 +147,22 @@ function BatchDetailPage() {
                 title="Cancel this batch?"
                 description={`${formatNumber(batch.totalFiles - done)} unprocessed files will be skipped. Completed results remain available.`}
                 confirmLabel="Cancel batch"
-                onConfirm={() => toast.success("Batch cancelled", { description: "Remaining files were dequeued." })}
+                onConfirm={() =>
+                  toast.success("Batch cancelled", {
+                    description: "Remaining files were dequeued.",
+                  })
+                }
               />
             )}
             {(batch.status === "succeeded" || batch.status === "partial_failure") && (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => toast.success("Archive prepared", { description: "A download link will be delivered by email shortly." })}
+                onClick={() =>
+                  toast.success("Archive prepared", {
+                    description: "A download link will be delivered by email shortly.",
+                  })
+                }
               >
                 <Download className="size-3.5" aria-hidden />
                 Download archive
@@ -120,15 +173,36 @@ function BatchDetailPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard label="Completed" value={`${formatNumber(batch.completed)} / ${formatNumber(batch.totalFiles)}`} hint={`${pct}% of files`} />
-        <MetricCard label="Failed" value={formatNumber(batch.failed)} deltaInvert hint={formatPercent(failureRate, 1) + " failure rate"} />
-        <MetricCard label="Duration" value={formatDuration(batch.durationMs ?? (running ? Date.now() - new Date(batch.createdAt).getTime() : 0))} hint={running ? "still running" : "total"} />
-        <MetricCard label="Parallelism" value={`${batch.maxParallelism}`} hint={batch.continueOnFailure ? "continues on failure" : "stops on first failure"} />
+        <MetricCard
+          label="Completed"
+          value={`${formatNumber(batch.completed)} / ${formatNumber(batch.totalFiles)}`}
+          hint={`${pct}% of files`}
+        />
+        <MetricCard
+          label="Failed"
+          value={formatNumber(batch.failed)}
+          deltaInvert
+          hint={formatPercent(failureRate, 1) + " failure rate"}
+        />
+        <MetricCard
+          label="Duration"
+          value={formatDuration(
+            batch.durationMs ?? (running ? Date.now() - new Date(batch.createdAt).getTime() : 0),
+          )}
+          hint={running ? "still running" : "total"}
+        />
+        <MetricCard
+          label="Parallelism"
+          value={`${batch.maxParallelism}`}
+          hint={batch.continueOnFailure ? "continues on failure" : "stops on first failure"}
+        />
       </div>
 
       <div className="rounded-lg border bg-card px-4 py-3">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-medium">{running ? "Processing files…" : "Processing complete"}</span>
+          <span className="font-medium">
+            {running ? "Processing files…" : "Processing complete"}
+          </span>
           <span className="font-mono font-tnum text-muted-foreground">{pct}%</span>
         </div>
         <Progress value={pct} className="mt-2 h-1.5" />
@@ -136,8 +210,17 @@ function BatchDetailPage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <SectionCard title={`Sample items (${batch.items.length} of ${formatNumber(batch.totalFiles)})`} description="First files in the manifest">
-            <DataTable columns={itemColumns} data={batch.items} searchable={false} pageSize={12} getRowId={(i) => String(i.n)} />
+          <SectionCard
+            title={`Sample items (${batch.items.length} of ${formatNumber(batch.totalFiles)})`}
+            description="First files in the manifest"
+          >
+            <DataTable
+              columns={itemColumns}
+              data={batch.items}
+              searchable={false}
+              pageSize={12}
+              getRowId={(i) => String(i.n)}
+            />
           </SectionCard>
         </div>
         <div className="space-y-4">
@@ -147,7 +230,11 @@ function BatchDetailPage() {
               items={[
                 { term: "Model", value: `${batch.modelId}@${batch.modelVersion}`, mono: true },
                 { term: "Max parallelism", value: `${batch.maxParallelism} workers`, mono: true },
-                { term: "Continue on failure", value: batch.continueOnFailure ? "yes" : "no", mono: true },
+                {
+                  term: "Continue on failure",
+                  value: batch.continueOnFailure ? "yes" : "no",
+                  mono: true,
+                },
                 { term: "Created", value: formatDateTime(batch.createdAt) },
                 { term: "Completed", value: formatDateTime(batch.completedAt) },
               ]}
@@ -160,7 +247,8 @@ function BatchDetailPage() {
                 <div className="min-w-0">
                   <p className="font-mono text-xs break-all">{batch.webhook}</p>
                   <p className="mt-1 text-[11px] text-muted-foreground">
-                    Receives <span className="font-mono">batch.completed</span> / <span className="font-mono">batch.failed</span> with HMAC signature.
+                    Receives <span className="font-mono">batch.completed</span> /{" "}
+                    <span className="font-mono">batch.failed</span> with HMAC signature.
                   </p>
                 </div>
               </div>

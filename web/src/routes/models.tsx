@@ -13,7 +13,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -31,9 +37,16 @@ export const Route = createFileRoute("/models")({
   head: () => ({
     meta: [
       { title: "Model Registry — VisionServe" },
-      { name: "description", content: "Browse registered computer vision models, versions, runtimes, and health status in the VisionServe model registry." },
+      {
+        name: "description",
+        content:
+          "Browse registered computer vision models, versions, runtimes, and health status in the VisionServe model registry.",
+      },
       { property: "og:title", content: "Model Registry — VisionServe" },
-      { property: "og:description", content: "Browse registered computer vision models, versions, and health status." },
+      {
+        property: "og:description",
+        content: "Browse registered computer vision models, versions, and health status.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -60,13 +73,20 @@ function LoadModelDialog() {
         <DialogHeader>
           <DialogTitle>Load a model</DialogTitle>
           <DialogDescription>
-            Register an ONNX model artifact. The scheduler will pull it onto workers and run a warm-up pass.
+            Register an ONNX model artifact. The scheduler will pull it onto workers and run a
+            warm-up pass.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="lm-name">Model name</Label>
-            <Input id="lm-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="my-detector-v2" className="font-mono text-xs" />
+            <Input
+              id="lm-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="my-detector-v2"
+              className="font-mono text-xs"
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="lm-task">Task</Label>
@@ -76,7 +96,9 @@ function LoadModelDialog() {
               </SelectTrigger>
               <SelectContent>
                 {["detect", "ocr", "classify", "segment"].map((t) => (
-                  <SelectItem key={t} value={t} className="font-mono text-xs">{t}</SelectItem>
+                  <SelectItem key={t} value={t} className="font-mono text-xs">
+                    {t}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -87,7 +109,9 @@ function LoadModelDialog() {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
           <Button
             disabled={!name.trim()}
             onClick={() => {
@@ -126,7 +150,10 @@ function ModelsPage() {
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-52 flex-1 sm:max-w-xs">
-          <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Search
+            className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
           <Input
             placeholder="Search models…"
             className="pl-8"
@@ -143,9 +170,13 @@ function ModelsPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {["all", "detect", "ocr", "classify", "segment", "resize", "grayscale", "metadata"].map((t) => (
-              <SelectItem key={t} value={t} className="font-mono text-xs">{t}</SelectItem>
-            ))}
+            {["all", "detect", "ocr", "classify", "segment", "resize", "grayscale", "metadata"].map(
+              (t) => (
+                <SelectItem key={t} value={t} className="font-mono text-xs">
+                  {t}
+                </SelectItem>
+              ),
+            )}
           </SelectContent>
         </Select>
         <Select
@@ -157,7 +188,9 @@ function ModelsPage() {
           </SelectTrigger>
           <SelectContent>
             {["all", "healthy", "warming", "loading", "degraded", "inactive", "failed"].map((s) => (
-              <SelectItem key={s} value={s} className="font-mono text-xs">{s}</SelectItem>
+              <SelectItem key={s} value={s} className="font-mono text-xs">
+                {s}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -167,8 +200,12 @@ function ModelsPage() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}>
-              <CardHeader><Skeleton className="h-4 w-32" /></CardHeader>
-              <CardContent><Skeleton className="h-16 w-full" /></CardContent>
+              <CardHeader>
+                <Skeleton className="h-4 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-16 w-full" />
+              </CardContent>
             </Card>
           ))}
         </div>
@@ -186,7 +223,9 @@ function ModelsPage() {
               <Card className="h-full transition-colors group-hover:border-primary/40">
                 <CardHeader className="flex-row items-start justify-between gap-2 space-y-0 px-4 pt-4 pb-2">
                   <div className="min-w-0">
-                    <p className="truncate font-mono text-sm font-semibold group-hover:text-primary">{m.name}</p>
+                    <p className="truncate font-mono text-sm font-semibold group-hover:text-primary">
+                      {m.name}
+                    </p>
                     <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
                       v{m.activeVersion} · {m.runtime}
                     </p>
@@ -194,27 +233,41 @@ function ModelsPage() {
                   <StatusBadge status={m.status} />
                 </CardHeader>
                 <CardContent className="space-y-3 px-4 pb-4">
-                  <p className="line-clamp-2 min-h-8 text-xs text-muted-foreground">{m.description}</p>
+                  <p className="line-clamp-2 min-h-8 text-xs text-muted-foreground">
+                    {m.description}
+                  </p>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="rounded-md border bg-muted px-1.5 py-0.5 font-mono text-[10px]">{m.task}</span>
+                    <span className="rounded-md border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+                      {m.task}
+                    </span>
                     <EnvBadge env={m.environment} />
-                    <span className="rounded-md border bg-muted px-1.5 py-0.5 font-mono text-[10px]">{formatBytes(m.sizeBytes)}</span>
+                    <span className="rounded-md border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+                      {formatBytes(m.sizeBytes)}
+                    </span>
                   </div>
                   <dl className="grid grid-cols-3 gap-2 border-t pt-3 text-center">
                     <div>
                       <dt className="text-[10px] text-muted-foreground uppercase">Requests</dt>
-                      <dd className="font-mono text-xs font-medium font-tnum">{formatCompact(m.requests)}</dd>
+                      <dd className="font-mono text-xs font-medium font-tnum">
+                        {formatCompact(m.requests)}
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-[10px] text-muted-foreground uppercase">Latency</dt>
-                      <dd className="font-mono text-xs font-medium font-tnum">{formatMs(m.avgLatencyMs)}</dd>
+                      <dd className="font-mono text-xs font-medium font-tnum">
+                        {formatMs(m.avgLatencyMs)}
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-[10px] text-muted-foreground uppercase">Errors</dt>
-                      <dd className="font-mono text-xs font-medium font-tnum">{formatPercent(m.errorRate)}</dd>
+                      <dd className="font-mono text-xs font-medium font-tnum">
+                        {formatPercent(m.errorRate)}
+                      </dd>
                     </div>
                   </dl>
-                  <p className="text-[11px] text-muted-foreground">Updated {formatRelative(m.updatedAt)}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Updated {formatRelative(m.updatedAt)}
+                  </p>
                 </CardContent>
               </Card>
             </Link>

@@ -3,7 +3,14 @@ import { useState } from "react";
 
 import { PageHeader, SectionCard } from "@/components/shared/page-header";
 import { CodeBlock, InlineCode } from "@/components/shared/code-block";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { errorCodes } from "@/mocks/data";
 import { cn } from "@/lib/utils";
@@ -12,9 +19,16 @@ export const Route = createFileRoute("/api-reference")({
   head: () => ({
     meta: [
       { title: "API Reference — VisionServe" },
-      { name: "description", content: "REST API reference for the VisionServe inference platform: authentication, endpoints, and error codes." },
+      {
+        name: "description",
+        content:
+          "REST API reference for the VisionServe inference platform: authentication, endpoints, and error codes.",
+      },
       { property: "og:title", content: "API Reference — VisionServe" },
-      { property: "og:description", content: "REST API reference: authentication, endpoints, and error codes." },
+      {
+        property: "og:description",
+        content: "REST API reference: authentication, endpoints, and error codes.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -23,15 +37,60 @@ export const Route = createFileRoute("/api-reference")({
 });
 
 const ENDPOINTS = [
-  { method: "POST", path: "/v1/detect", description: "Run object detection on an image", scope: "inference:run" },
-  { method: "POST", path: "/v1/ocr", description: "Extract text from an image", scope: "inference:run" },
-  { method: "POST", path: "/v1/classify", description: "Classify an image into labels", scope: "inference:run" },
-  { method: "POST", path: "/v1/jobs", description: "Submit an asynchronous inference job", scope: "jobs:write" },
-  { method: "GET", path: "/v1/jobs/{id}", description: "Poll job status and progress", scope: "jobs:read" },
-  { method: "POST", path: "/v1/batches", description: "Submit a batch of files for processing", scope: "batches:write" },
-  { method: "GET", path: "/v1/batches/{id}", description: "Poll batch progress", scope: "jobs:read" },
-  { method: "GET", path: "/v1/results/{id}", description: "Fetch a stored inference result", scope: "results:read" },
-  { method: "GET", path: "/v1/models", description: "List registered models", scope: "models:read" },
+  {
+    method: "POST",
+    path: "/v1/detect",
+    description: "Run object detection on an image",
+    scope: "inference:run",
+  },
+  {
+    method: "POST",
+    path: "/v1/ocr",
+    description: "Extract text from an image",
+    scope: "inference:run",
+  },
+  {
+    method: "POST",
+    path: "/v1/classify",
+    description: "Classify an image into labels",
+    scope: "inference:run",
+  },
+  {
+    method: "POST",
+    path: "/v1/jobs",
+    description: "Submit an asynchronous inference job",
+    scope: "jobs:write",
+  },
+  {
+    method: "GET",
+    path: "/v1/jobs/{id}",
+    description: "Poll job status and progress",
+    scope: "jobs:read",
+  },
+  {
+    method: "POST",
+    path: "/v1/batches",
+    description: "Submit a batch of files for processing",
+    scope: "batches:write",
+  },
+  {
+    method: "GET",
+    path: "/v1/batches/{id}",
+    description: "Poll batch progress",
+    scope: "jobs:read",
+  },
+  {
+    method: "GET",
+    path: "/v1/results/{id}",
+    description: "Fetch a stored inference result",
+    scope: "results:read",
+  },
+  {
+    method: "GET",
+    path: "/v1/models",
+    description: "List registered models",
+    scope: "models:read",
+  },
   { method: "GET", path: "/v1/health", description: "Liveness and component status", scope: "—" },
 ] as const;
 
@@ -100,9 +159,10 @@ function ApiReferencePage() {
 
       <SectionCard title="Authentication">
         <p className="text-sm text-muted-foreground">
-          Send your API key in the <InlineCode>Authorization</InlineCode> header as a Bearer token. Keys are
-          environment-scoped: <InlineCode>vs_live_…</InlineCode> keys hit production, <InlineCode>vs_test_…</InlineCode>{" "}
-          keys hit development and staging. Create and rotate keys on the API keys page.
+          Send your API key in the <InlineCode>Authorization</InlineCode> header as a Bearer token.
+          Keys are environment-scoped: <InlineCode>vs_live_…</InlineCode> keys hit production,{" "}
+          <InlineCode>vs_test_…</InlineCode> keys hit development and staging. Create and rotate
+          keys on the API keys page.
         </p>
       </SectionCard>
 
@@ -143,10 +203,18 @@ function ApiReferencePage() {
             <TableBody>
               {ENDPOINTS.map((e) => (
                 <TableRow key={`${e.method}-${e.path}`}>
-                  <TableCell className={cn("py-1.5 font-mono text-xs font-semibold", methodColor[e.method])}>{e.method}</TableCell>
+                  <TableCell
+                    className={cn("py-1.5 font-mono text-xs font-semibold", methodColor[e.method])}
+                  >
+                    {e.method}
+                  </TableCell>
                   <TableCell className="py-1.5 font-mono text-xs">{e.path}</TableCell>
-                  <TableCell className="py-1.5 text-xs text-muted-foreground">{e.description}</TableCell>
-                  <TableCell className="py-1.5 font-mono text-[11px] text-muted-foreground">{e.scope}</TableCell>
+                  <TableCell className="py-1.5 text-xs text-muted-foreground">
+                    {e.description}
+                  </TableCell>
+                  <TableCell className="py-1.5 font-mono text-[11px] text-muted-foreground">
+                    {e.scope}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -154,7 +222,10 @@ function ApiReferencePage() {
         </div>
       </SectionCard>
 
-      <SectionCard title="Error codes" description="All errors return a JSON body with code, message, and request_id">
+      <SectionCard
+        title="Error codes"
+        description="All errors return a JSON body with code, message, and request_id"
+      >
         <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
@@ -169,7 +240,9 @@ function ApiReferencePage() {
                 <TableRow key={e.code}>
                   <TableCell className="py-1.5 font-mono text-xs font-medium">{e.code}</TableCell>
                   <TableCell className="py-1.5 font-mono text-xs font-tnum">{e.http}</TableCell>
-                  <TableCell className="py-1.5 text-xs text-muted-foreground">{e.description}</TableCell>
+                  <TableCell className="py-1.5 text-xs text-muted-foreground">
+                    {e.description}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

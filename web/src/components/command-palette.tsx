@@ -85,31 +85,58 @@ export function CommandPalette() {
         <CommandSeparator />
         <CommandGroup heading="Models">
           {(modelList ?? []).map((m) => (
-            <CommandItem key={m.id} value={`model ${m.id} ${m.name} ${m.task}`} onSelect={() => go(`/models/${m.id}`)}>
+            <CommandItem
+              key={m.id}
+              value={`model ${m.id} ${m.name} ${m.task}`}
+              onSelect={() => go(`/models/${m.id}`)}
+            >
               <Boxes aria-hidden />
               {m.name}
-              <span className="ml-2"><StatusBadge status={m.status} /></span>
+              <span className="ml-2">
+                <StatusBadge status={m.status} />
+              </span>
             </CommandItem>
           ))}
         </CommandGroup>
         <CommandGroup heading="Jobs">
           {(jobList ?? []).slice(0, 8).map((j) => (
-            <CommandItem key={j.id} value={`job ${j.id} ${j.inputFile}`} onSelect={() => go(`/jobs/${j.id}`)}>
+            <CommandItem
+              key={j.id}
+              value={`job ${j.id} ${j.inputFile}`}
+              onSelect={() => go(`/jobs/${j.id}`)}
+            >
               <ListChecks aria-hidden />
               <span className="font-mono text-xs">{j.id}</span>
-              <span className="ml-2"><StatusBadge status={j.status} /></span>
+              <span className="ml-2">
+                <StatusBadge status={j.status} />
+              </span>
             </CommandItem>
           ))}
         </CommandGroup>
         <CommandSeparator />
         <CommandGroup heading="Actions">
-          <CommandItem onSelect={() => { setTheme("light"); setOpen(false); }}>
+          <CommandItem
+            onSelect={() => {
+              setTheme("light");
+              setOpen(false);
+            }}
+          >
             <Sun aria-hidden /> Switch to light theme
           </CommandItem>
-          <CommandItem onSelect={() => { setTheme("dark"); setOpen(false); }}>
+          <CommandItem
+            onSelect={() => {
+              setTheme("dark");
+              setOpen(false);
+            }}
+          >
             <Moon aria-hidden /> Switch to dark theme
           </CommandItem>
-          <CommandItem onSelect={() => { setTheme("system"); setOpen(false); }}>
+          <CommandItem
+            onSelect={() => {
+              setTheme("system");
+              setOpen(false);
+            }}
+          >
             <Monitor aria-hidden /> Use system theme
           </CommandItem>
         </CommandGroup>

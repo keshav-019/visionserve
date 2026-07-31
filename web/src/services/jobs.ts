@@ -12,9 +12,12 @@ export interface JobFilters {
 
 export function listJobs(filters: JobFilters = {}) {
   let out = jobs;
-  if (filters.status && filters.status !== "all") out = out.filter((j) => j.status === filters.status);
-  if (filters.operation && filters.operation !== "all") out = out.filter((j) => j.operation === filters.operation);
-  if (filters.modelId && filters.modelId !== "all") out = out.filter((j) => j.modelId === filters.modelId);
+  if (filters.status && filters.status !== "all")
+    out = out.filter((j) => j.status === filters.status);
+  if (filters.operation && filters.operation !== "all")
+    out = out.filter((j) => j.operation === filters.operation);
+  if (filters.modelId && filters.modelId !== "all")
+    out = out.filter((j) => j.modelId === filters.modelId);
   if (filters.search) {
     const q = filters.search.toLowerCase();
     out = out.filter(

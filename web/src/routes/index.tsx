@@ -32,12 +32,14 @@ export const Route = createFileRoute("/")({
       { title: "Dashboard — VisionServe" },
       {
         name: "description",
-        content: "Real-time overview of inference traffic, latency, model deployments, and quota usage across your VisionServe workspace.",
+        content:
+          "Real-time overview of inference traffic, latency, model deployments, and quota usage across your VisionServe workspace.",
       },
       { property: "og:title", content: "Dashboard — VisionServe" },
       {
         property: "og:description",
-        content: "Real-time overview of inference traffic, latency, model deployments, and quota usage across your VisionServe workspace.",
+        content:
+          "Real-time overview of inference traffic, latency, model deployments, and quota usage across your VisionServe workspace.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -91,7 +93,9 @@ const recentJobColumns: ColumnDef<InferenceJob, unknown>[] = [
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">{formatRelative(row.original.createdAt)}</span>
+      <span className="text-xs text-muted-foreground">
+        {formatRelative(row.original.createdAt)}
+      </span>
     ),
   },
 ];
@@ -135,10 +139,36 @@ function DashboardPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard label="Requests today" value={formatCompact(overview.totalRequests)} delta={overview.totalRequestsDelta} icon={Zap} hint="vs yesterday" />
-        <MetricCard label="Success rate" value={formatPercent(overview.successRate)} delta={overview.successRateDelta} icon={Activity} hint="24h rolling" />
-        <MetricCard label="Avg latency" value={formatMs(overview.avgLatencyMs)} delta={overview.avgLatencyDelta} deltaInvert icon={Timer} hint="end-to-end" />
-        <MetricCard label="P95 latency" value={formatMs(overview.p95LatencyMs)} delta={overview.p95Delta} deltaInvert icon={Gauge} hint="SLO 75 ms" />
+        <MetricCard
+          label="Requests today"
+          value={formatCompact(overview.totalRequests)}
+          delta={overview.totalRequestsDelta}
+          icon={Zap}
+          hint="vs yesterday"
+        />
+        <MetricCard
+          label="Success rate"
+          value={formatPercent(overview.successRate)}
+          delta={overview.successRateDelta}
+          icon={Activity}
+          hint="24h rolling"
+        />
+        <MetricCard
+          label="Avg latency"
+          value={formatMs(overview.avgLatencyMs)}
+          delta={overview.avgLatencyDelta}
+          deltaInvert
+          icon={Timer}
+          hint="end-to-end"
+        />
+        <MetricCard
+          label="P95 latency"
+          value={formatMs(overview.p95LatencyMs)}
+          delta={overview.p95Delta}
+          deltaInvert
+          icon={Gauge}
+          hint="SLO 75 ms"
+        />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
@@ -170,7 +200,10 @@ function DashboardPage() {
             yFormatter={(v) => formatCompact(v)}
           />
         </ChartCard>
-        <ChartCard title="Latency percentiles" description="End-to-end inference latency, last 48 hours">
+        <ChartCard
+          title="Latency percentiles"
+          description="End-to-end inference latency, last 48 hours"
+        >
           <LineTrend
             data={latency}
             series={[
@@ -211,7 +244,9 @@ function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <StatusBadge status={d.status} />
-                    <p className="mt-1 font-mono text-[11px] text-muted-foreground font-tnum">p95 {formatMs(d.p95Ms)}</p>
+                    <p className="mt-1 font-mono text-[11px] text-muted-foreground font-tnum">
+                      p95 {formatMs(d.p95Ms)}
+                    </p>
                   </div>
                 </Link>
               </li>
@@ -237,14 +272,24 @@ function DashboardPage() {
 
         <SectionCard
           title="System status"
-          description={degraded.length === 0 ? "All components operational" : `${degraded.length} component(s) need attention`}
+          description={
+            degraded.length === 0
+              ? "All components operational"
+              : `${degraded.length} component(s) need attention`
+          }
         >
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <StatusBadge status={degraded.length === 0 ? "operational" : "degraded"} label={degraded.length === 0 ? "All systems operational" : "Partial degradation"} />
+              <StatusBadge
+                status={degraded.length === 0 ? "operational" : "degraded"}
+                label={degraded.length === 0 ? "All systems operational" : "Partial degradation"}
+              />
             </div>
             {degraded.map((c) => (
-              <div key={c.id} className="rounded-md border border-warning/30 bg-warning/5 px-3 py-2">
+              <div
+                key={c.id}
+                className="rounded-md border border-warning/30 bg-warning/5 px-3 py-2"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-xs font-medium">{c.name}</p>
                   <StatusBadge status={c.status} />
@@ -253,8 +298,13 @@ function DashboardPage() {
               </div>
             ))}
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>{openIncidents.length} open incident{openIncidents.length === 1 ? "" : "s"}</span>
-              <Link to="/system-health" className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
+              <span>
+                {openIncidents.length} open incident{openIncidents.length === 1 ? "" : "s"}
+              </span>
+              <Link
+                to="/system-health"
+                className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+              >
                 Status page <ArrowRight className="size-3" aria-hidden />
               </Link>
             </div>

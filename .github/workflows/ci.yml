@@ -20,7 +20,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clang-format-18
       - name: Check formatting
         run: |
-          files=$(find apps include src tests -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' \) 2>/dev/null)
+          dirs=""
+          for d in apps include src tests; do
+            [ -d "$d" ] && dirs="$dirs $d"
+          done
+          files=$(find $dirs -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' \) 2>/dev/null)
           if [ -z "$files" ]; then
             echo "No C++ sources found yet."
             exit 0

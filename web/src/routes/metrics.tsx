@@ -19,9 +19,16 @@ export const Route = createFileRoute("/metrics")({
   head: () => ({
     meta: [
       { title: "Metrics — VisionServe" },
-      { name: "description", content: "Platform observability: throughput, latency percentiles, queue depth, worker utilization, and error distributions." },
+      {
+        name: "description",
+        content:
+          "Platform observability: throughput, latency percentiles, queue depth, worker utilization, and error distributions.",
+      },
       { property: "og:title", content: "Metrics — VisionServe" },
-      { property: "og:description", content: "Throughput, latency, queue depth, and error distributions." },
+      {
+        property: "og:description",
+        content: "Throughput, latency, queue depth, and error distributions.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -49,18 +56,43 @@ function MetricsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-6">
-      <PageHeader title="Metrics" description="Live platform telemetry across all environments, refreshed every 30 seconds." />
+      <PageHeader
+        title="Metrics"
+        description="Live platform telemetry across all environments, refreshed every 30 seconds."
+      />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard label="Requests (24h)" value={formatCompact(overview.totalRequests)} delta={overview.totalRequestsDelta} />
-        <MetricCard label="Success rate" value={formatPercent(overview.successRate)} delta={overview.successRateDelta} />
-        <MetricCard label="Avg latency" value={formatMs(overview.avgLatencyMs)} delta={overview.avgLatencyDelta} deltaInvert />
-        <MetricCard label="P95 latency" value={formatMs(overview.p95LatencyMs)} delta={overview.p95Delta} deltaInvert />
+        <MetricCard
+          label="Requests (24h)"
+          value={formatCompact(overview.totalRequests)}
+          delta={overview.totalRequestsDelta}
+        />
+        <MetricCard
+          label="Success rate"
+          value={formatPercent(overview.successRate)}
+          delta={overview.successRateDelta}
+        />
+        <MetricCard
+          label="Avg latency"
+          value={formatMs(overview.avgLatencyMs)}
+          delta={overview.avgLatencyDelta}
+          deltaInvert
+        />
+        <MetricCard
+          label="P95 latency"
+          value={formatMs(overview.p95LatencyMs)}
+          delta={overview.p95Delta}
+          deltaInvert
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <ChartCard title="Throughput" description="Requests per second, last 60 minutes">
-          <AreaTrend data={throughput} series={[{ key: "rps", label: "Requests/s" }]} yFormatter={(v) => `${v.toFixed(0)} rps`} />
+          <AreaTrend
+            data={throughput}
+            series={[{ key: "rps", label: "Requests/s" }]}
+            yFormatter={(v) => `${v.toFixed(0)} rps`}
+          />
         </ChartCard>
         <ChartCard title="Latency percentiles" description="Last 48 hours">
           <LineTrend
@@ -94,7 +126,10 @@ function MetricsPage() {
             yFormatter={(v) => v.toFixed(0)}
           />
         </ChartCard>
-        <ChartCard title="Dynamic batching" description="Average fused batch size and requests saved">
+        <ChartCard
+          title="Dynamic batching"
+          description="Average fused batch size and requests saved"
+        >
           <AreaTrend
             data={batchSize}
             series={[

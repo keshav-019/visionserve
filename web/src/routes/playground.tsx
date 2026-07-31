@@ -17,8 +17,21 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { modelsQueryOptions } from "@/services/models";
 import { playgroundSamples, runPlaygroundInference, type PlaygroundSample } from "@/lib/playground";
 import { formatMs, formatPercent } from "@/lib/format";
@@ -31,10 +44,15 @@ export const Route = createFileRoute("/playground")({
       { title: "Playground — VisionServe" },
       {
         name: "description",
-        content: "Test computer vision models interactively: upload an image, run detection, OCR, or classification, and inspect overlays, timings, and raw JSON.",
+        content:
+          "Test computer vision models interactively: upload an image, run detection, OCR, or classification, and inspect overlays, timings, and raw JSON.",
       },
       { property: "og:title", content: "Playground — VisionServe" },
-      { property: "og:description", content: "Upload an image and test detection, OCR, and classification models interactively." },
+      {
+        property: "og:description",
+        content:
+          "Upload an image and test detection, OCR, and classification models interactively.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -50,7 +68,9 @@ const STAGES = ["Queued", "Preprocessing", "Running inference", "Postprocessing"
 function SampleGallery({ onPick }: { onPick: (s: PlaygroundSample) => void }) {
   return (
     <div>
-      <p className="mb-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Or try a sample</p>
+      <p className="mb-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+        Or try a sample
+      </p>
       <div className="flex flex-wrap gap-2">
         {playgroundSamples.map((s) => (
           <button
@@ -77,11 +97,16 @@ function PredictionsList({ result }: { result: InferenceResult }) {
         <li key={p.label} className="space-y-1">
           <div className="flex items-baseline justify-between text-xs">
             <span className={cn("font-medium", i === 0 && "text-primary")}>{p.label}</span>
-            <span className="font-mono font-tnum text-muted-foreground">{formatPercent(p.confidence * 100, 1)}</span>
+            <span className="font-mono font-tnum text-muted-foreground">
+              {formatPercent(p.confidence * 100, 1)}
+            </span>
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <div
-              className={cn("h-full rounded-full", i === 0 ? "bg-primary" : "bg-muted-foreground/40")}
+              className={cn(
+                "h-full rounded-full",
+                i === 0 ? "bg-primary" : "bg-muted-foreground/40",
+              )}
               style={{ width: `${p.confidence * 100}%` }}
             />
           </div>
@@ -94,7 +119,10 @@ function PredictionsList({ result }: { result: InferenceResult }) {
 function PlaygroundPage() {
   const { data: modelList } = useSuspenseQuery(modelsQueryOptions());
   const [modelId, setModelId] = useState(modelList[0]?.id ?? "");
-  const model: Model | undefined = useMemo(() => modelList.find((m) => m.id === modelId), [modelList, modelId]);
+  const model: Model | undefined = useMemo(
+    () => modelList.find((m) => m.id === modelId),
+    [modelList, modelId],
+  );
 
   const [image, setImage] = useState<UploadedImage | null>(null);
   const [sampleKey, setSampleKey] = useState<string | undefined>();
@@ -131,10 +159,13 @@ function PlaygroundPage() {
       timers.current.push(setTimeout(() => setStage(i), i * 380));
     });
     timers.current.push(
-      setTimeout(() => {
-        setResult(runPlaygroundInference(model, image, sampleKey));
-        setRunning(false);
-      }, STAGES.length * 380 + 350),
+      setTimeout(
+        () => {
+          setResult(runPlaygroundInference(model, image, sampleKey));
+          setRunning(false);
+        },
+        STAGES.length * 380 + 350,
+      ),
     );
   };
 
@@ -188,12 +219,15 @@ function PlaygroundPage() {
                   <StatusBadge status={model.status} />
                   <span className="font-mono">{model.task}</span>
                   <EnvBadge env={model.environment} />
-                  <span className="ml-auto font-mono text-muted-foreground font-tnum">~{formatMs(model.avgLatencyMs)}</span>
+                  <span className="ml-auto font-mono text-muted-foreground font-tnum">
+                    ~{formatMs(model.avgLatencyMs)}
+                  </span>
                 </div>
               )}
               {model && (model.status === "inactive" || model.status === "failed") && (
                 <p className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
-                  This model is not serving in {model.environment}. Inference may fail or be queued until it becomes healthy.
+                  This model is not serving in {model.environment}. Inference may fail or be queued
+                  until it becomes healthy.
                 </p>
               )}
             </div>
@@ -228,10 +262,19 @@ function PlaygroundPage() {
 
           <div className="flex gap-2">
             <Button className="flex-1" onClick={run} disabled={!model || !image || running}>
-              {running ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Play className="size-4" aria-hidden />}
+              {running ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : (
+                <Play className="size-4" aria-hidden />
+              )}
               {running ? "Running…" : "Run inference"}
             </Button>
-            <Button variant="outline" onClick={reset} disabled={running && stage < 1} aria-label="Reset playground">
+            <Button
+              variant="outline"
+              onClick={reset}
+              disabled={running && stage < 1}
+              aria-label="Reset playground"
+            >
               <RotateCcw className="size-4" aria-hidden />
             </Button>
           </div>
@@ -245,7 +288,9 @@ function PlaygroundPage() {
                 {STAGES.map((label, i) => (
                   <li key={label} className="flex items-center gap-3 text-sm">
                     {i < stage ? (
-                      <span className="flex size-5 items-center justify-center rounded-full bg-success/15 text-success text-[10px] font-bold">✓</span>
+                      <span className="flex size-5 items-center justify-center rounded-full bg-success/15 text-success text-[10px] font-bold">
+                        ✓
+                      </span>
                     ) : i === stage ? (
                       <Loader2 className="size-5 animate-spin text-primary" aria-hidden />
                     ) : (
@@ -318,8 +363,12 @@ function PlaygroundPage() {
                               className={cn("cursor-pointer", selectedBox === i && "bg-accent/50")}
                               onClick={() => setSelectedBox(selectedBox === i ? null : i)}
                             >
-                              <TableCell className="py-1.5 text-sm font-medium">{d.label}</TableCell>
-                              <TableCell className="py-1.5 font-mono text-xs font-tnum">{formatPercent(d.confidence * 100, 1)}</TableCell>
+                              <TableCell className="py-1.5 text-sm font-medium">
+                                {d.label}
+                              </TableCell>
+                              <TableCell className="py-1.5 font-mono text-xs font-tnum">
+                                {formatPercent(d.confidence * 100, 1)}
+                              </TableCell>
                               <TableCell className="py-1.5 font-mono text-xs text-muted-foreground">
                                 {d.box.x}, {d.box.y}, {d.box.width}, {d.box.height}
                               </TableCell>
@@ -332,8 +381,13 @@ function PlaygroundPage() {
                 )}
 
                 {result.ocrText && (
-                  <SectionCard title="Extracted text" description={`${filteredRegions.length} regions above threshold`}>
-                    <pre className="rounded-md border bg-muted/40 p-3 font-mono text-xs whitespace-pre-wrap">{result.ocrText}</pre>
+                  <SectionCard
+                    title="Extracted text"
+                    description={`${filteredRegions.length} regions above threshold`}
+                  >
+                    <pre className="rounded-md border bg-muted/40 p-3 font-mono text-xs whitespace-pre-wrap">
+                      {result.ocrText}
+                    </pre>
                   </SectionCard>
                 )}
 
@@ -351,7 +405,10 @@ function PlaygroundPage() {
               </TabsContent>
 
               <TabsContent value="json">
-                <JsonView data={{ ...result, inputImage: "<image-binary>" }} title={`${result.id}.json`} />
+                <JsonView
+                  data={{ ...result, inputImage: "<image-binary>" }}
+                  title={`${result.id}.json`}
+                />
               </TabsContent>
             </Tabs>
           )}

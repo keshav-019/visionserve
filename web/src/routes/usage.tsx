@@ -11,9 +11,16 @@ export const Route = createFileRoute("/usage")({
   head: () => ({
     meta: [
       { title: "Usage & Quotas — VisionServe" },
-      { name: "description", content: "Request quotas, consumption by model and operation, and usage trends for your workspace." },
+      {
+        name: "description",
+        content:
+          "Request quotas, consumption by model and operation, and usage trends for your workspace.",
+      },
       { property: "og:title", content: "Usage & Quotas — VisionServe" },
-      { property: "og:description", content: "Quota consumption and usage breakdowns by model and operation." },
+      {
+        property: "og:description",
+        content: "Quota consumption and usage breakdowns by model and operation.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

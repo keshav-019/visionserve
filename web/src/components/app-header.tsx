@@ -69,7 +69,8 @@ const sectionLabels: Record<string, string> = {
   "api-reference": "API Reference",
 };
 
-const idLike = (s: string) => /^(job_|bat_|res_|dep_|key_|wh_|mv_|detector|ocr-|classifier|segmenter)/.test(s);
+const idLike = (s: string) =>
+  /^(job_|bat_|res_|dep_|key_|wh_|mv_|detector|ocr-|classifier|segmenter)/.test(s);
 
 function HeaderBreadcrumbs() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
@@ -96,7 +97,9 @@ function HeaderBreadcrumbs() {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {last ? (
-                  <BreadcrumbPage className="max-w-64 truncate font-mono text-[13px]">{label}</BreadcrumbPage>
+                  <BreadcrumbPage className="max-w-64 truncate font-mono text-[13px]">
+                    {label}
+                  </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
                     <Link to={to}>{label}</Link>
@@ -120,9 +123,15 @@ function EnvSelector() {
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="production" className="font-mono text-xs">production</SelectItem>
-        <SelectItem value="staging" className="font-mono text-xs">staging</SelectItem>
-        <SelectItem value="development" className="font-mono text-xs">development</SelectItem>
+        <SelectItem value="production" className="font-mono text-xs">
+          production
+        </SelectItem>
+        <SelectItem value="staging" className="font-mono text-xs">
+          staging
+        </SelectItem>
+        <SelectItem value="development" className="font-mono text-xs">
+          development
+        </SelectItem>
       </SelectContent>
     </Select>
   );
@@ -140,8 +149,14 @@ function ThemeMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="size-8" aria-label="Change theme">
-          <Sun className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" aria-hidden />
-          <Moon className="absolute size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" aria-hidden />
+          <Sun
+            className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
+            aria-hidden
+          />
+          <Moon
+            className="absolute size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
+            aria-hidden
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -169,12 +184,23 @@ function NotificationsMenu() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative size-8" aria-label={`Notifications, ${unread} unread`}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative size-8"
+          aria-label={`Notifications, ${unread} unread`}
+        >
           <Bell className="size-4" aria-hidden />
           {unread > 0 && (
             <span className="absolute top-1 right-1 flex size-2">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive opacity-60" aria-hidden />
-              <span className="relative inline-flex size-2 rounded-full bg-destructive" aria-hidden />
+              <span
+                className="absolute inline-flex size-full animate-ping rounded-full bg-destructive opacity-60"
+                aria-hidden
+              />
+              <span
+                className="relative inline-flex size-2 rounded-full bg-destructive"
+                aria-hidden
+              />
             </span>
           )}
         </Button>
@@ -198,7 +224,10 @@ function NotificationsMenu() {
               <li key={n.id}>
                 <Link
                   to={n.href ?? "/"}
-                  className={cn("flex gap-3 px-3 py-2.5 transition-colors hover:bg-muted/60", !n.read && "bg-accent/40")}
+                  className={cn(
+                    "flex gap-3 px-3 py-2.5 transition-colors hover:bg-muted/60",
+                    !n.read && "bg-accent/40",
+                  )}
                 >
                   <span
                     className={cn(
@@ -210,7 +239,9 @@ function NotificationsMenu() {
                   <span className="min-w-0">
                     <span className="block truncate text-[13px] font-medium">{n.title}</span>
                     <span className="mt-0.5 block text-xs text-muted-foreground">{n.body}</span>
-                    <span className="mt-1 block text-[11px] text-muted-foreground/70">{formatRelative(n.ts)}</span>
+                    <span className="mt-1 block text-[11px] text-muted-foreground/70">
+                      {formatRelative(n.ts)}
+                    </span>
                   </span>
                 </Link>
               </li>
@@ -229,7 +260,10 @@ function UserMenu() {
         <Button variant="ghost" className="h-8 gap-1.5 px-1.5" aria-label="Account menu">
           <Avatar className="size-6 border">
             <AvatarFallback className="bg-secondary text-[10px] font-semibold">
-              {currentUser.name.split(" ").map((p) => p[0]).join("")}
+              {currentUser.name
+                .split(" ")
+                .map((p) => p[0])
+                .join("")}
             </AvatarFallback>
           </Avatar>
           <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden />
