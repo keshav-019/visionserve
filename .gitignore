@@ -1,9 +1,9 @@
-# Build outputs
-build/
-out/
-cmake-build-*/
-bin/
-lib/
+# Build outputs (repo-root only — web/ has its own .gitignore for node/dist/etc.)
+/build/
+/out/
+/cmake-build-*/
+/bin/
+/lib/
 
 # CMake
 CMakeCache.txt
@@ -42,17 +42,17 @@ compile_commands.json
 *.o
 
 # Package caches
-vcpkg_installed/
+/vcpkg_installed/
 .vcpkg-root/
 
-# Test and benchmark output
-test-results/
-benchmark-results/
-coverage/
+# Test and benchmark output (repo-root only)
+/test-results/
+/benchmark-results/
+/coverage/
 
 # Logs
 *.log
-logs/
+/logs/
 
 # Environment and secrets
 .env
@@ -60,12 +60,12 @@ logs/
 !.env.example
 
 # Temporary files
-tmp/
-temp/
+/tmp/
+/temp/
 *.tmp
 *.swp
 *~
-_wiki_tmp/
+/_wiki_tmp/
 
 # Claude Code local-only state
 .claude/settings.local.json
@@ -75,10 +75,10 @@ _wiki_tmp/
 Thumbs.db
 Desktop.ini
 
-# Model files and generated artifacts
-models/*.onnx
-models/*.engine
-models/*.bin
-artifacts/
-uploads/
-results/
+# Model files and generated artifacts (repo-root only)
+/models/*.onnx
+/models/*.engine
+/models/*.bin
+/artifacts/
+/uploads/
+/results/
