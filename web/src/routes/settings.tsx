@@ -10,7 +10,13 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { limitsQueryOptions, workspaceQueryOptions } from "@/services/misc";
 import { formatDate } from "@/lib/format";
@@ -20,9 +26,15 @@ export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "Settings — VisionServe" },
-      { name: "description", content: "Workspace profile, platform limits, and administrative controls." },
+      {
+        name: "description",
+        content: "Workspace profile, platform limits, and administrative controls.",
+      },
       { property: "og:title", content: "Settings — VisionServe" },
-      { property: "og:description", content: "Workspace profile, platform limits, and administrative controls." },
+      {
+        property: "og:description",
+        content: "Workspace profile, platform limits, and administrative controls.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -39,7 +51,9 @@ function SettingsPage() {
   const { data: workspaceData } = useSuspenseQuery(workspaceQueryOptions());
   const { workspace, currentUser } = workspaceData;
 
-  const [values, setValues] = useState<Record<string, number>>(() => Object.fromEntries(limits.map((l) => [l.id, l.value])));
+  const [values, setValues] = useState<Record<string, number>>(() =>
+    Object.fromEntries(limits.map((l) => [l.id, l.value])),
+  );
   const dirty = useMemo(() => limits.some((l) => values[l.id] !== l.value), [limits, values]);
 
   const categories = useMemo(() => [...new Set(limits.map((l) => l.category))], [limits]);
@@ -103,10 +117,18 @@ function SettingsPage() {
         <div className="space-y-4 lg:col-span-2">
           <SectionCard
             title="Platform limits"
-            description={dirty ? "You have unsaved changes" : "All values match the deployed configuration"}
+            description={
+              dirty ? "You have unsaved changes" : "All values match the deployed configuration"
+            }
             actions={
               <div className="flex items-center gap-2">
-                <Button size="sm" variant="ghost" className="h-7 text-xs" disabled={!dirty} onClick={resetAll}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs"
+                  disabled={!dirty}
+                  onClick={resetAll}
+                >
                   <RotateCcw className="size-3.5" aria-hidden />
                   Reset
                 </Button>
@@ -114,7 +136,11 @@ function SettingsPage() {
                   size="sm"
                   className="h-7 text-xs"
                   disabled={!dirty}
-                  onClick={() => toast.success("Limits saved", { description: "New values apply to jobs submitted from now on." })}
+                  onClick={() =>
+                    toast.success("Limits saved", {
+                      description: "New values apply to jobs submitted from now on.",
+                    })
+                  }
                 >
                   <Save className="size-3.5" aria-hidden />
                   Save changes
@@ -125,7 +151,9 @@ function SettingsPage() {
             <div className="space-y-6">
               {categories.map((category) => (
                 <div key={category}>
-                  <h3 className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{category}</h3>
+                  <h3 className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                    {category}
+                  </h3>
                   <div className="space-y-3">
                     {limits
                       .filter((l) => l.category === category)
@@ -134,7 +162,10 @@ function SettingsPage() {
                         const warn = l.warnAbove !== undefined && value > l.warnAbove;
                         const changed = value !== l.value;
                         return (
-                          <div key={l.id} className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[1fr_140px]">
+                          <div
+                            key={l.id}
+                            className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[1fr_140px]"
+                          >
                             <div>
                               <Label htmlFor={`limit-${l.id}`} className="text-xs font-medium">
                                 {l.label}
@@ -148,7 +179,9 @@ function SettingsPage() {
                                 min={l.min}
                                 max={l.max}
                                 value={value}
-                                onChange={(e) => setValues((prev) => ({ ...prev, [l.id]: Number(e.target.value) }))}
+                                onChange={(e) =>
+                                  setValues((prev) => ({ ...prev, [l.id]: Number(e.target.value) }))
+                                }
                                 className={`h-8 font-mono text-xs font-tnum ${changed ? "border-primary" : ""}`}
                               />
                               <span className="w-16 shrink-0 font-mono text-[10px] text-muted-foreground">
@@ -175,15 +208,24 @@ function SettingsPage() {
               <div>
                 <p className="text-sm font-medium">Delete workspace</p>
                 <p className="text-xs text-muted-foreground">
-                  Removes all models, results, and keys. Retained audit logs are anonymized after 30 days.
+                  Removes all models, results, and keys. Retained audit logs are anonymized after 30
+                  days.
                 </p>
               </div>
               <ConfirmDialog
-                trigger={<Button variant="destructive" size="sm">Delete workspace</Button>}
+                trigger={
+                  <Button variant="destructive" size="sm">
+                    Delete workspace
+                  </Button>
+                }
                 title="Delete this workspace?"
                 description="This permanently removes all models, results, API keys, and deployments. There is no undo."
                 confirmLabel="Delete everything"
-                onConfirm={() => toast.error("Workspace deletion scheduled", { description: "A confirmation email was sent to the owner." })}
+                onConfirm={() =>
+                  toast.error("Workspace deletion scheduled", {
+                    description: "A confirmation email was sent to the owner.",
+                  })
+                }
               />
             </div>
           </SectionCard>

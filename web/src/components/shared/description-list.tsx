@@ -21,8 +21,12 @@ export function DescriptionList({
     >
       {items.map((item) => (
         <div key={item.term} className="min-w-0">
-          <dt className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{item.term}</dt>
-          <dd className={cn("mt-0.5 truncate text-sm", item.mono && "font-mono text-xs")}>{item.value ?? "—"}</dd>
+          <dt className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+            {item.term}
+          </dt>
+          <dd className={cn("mt-0.5 truncate text-sm", item.mono && "font-mono text-xs")}>
+            {item.value ?? "—"}
+          </dd>
         </div>
       ))}
     </dl>

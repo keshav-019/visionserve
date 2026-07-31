@@ -62,7 +62,12 @@ export function DetectionOverlay({
   }, [detections, ocrRegions, minConfidence]);
 
   return (
-    <div className={cn("bg-checkerboard relative w-full overflow-hidden rounded-lg border select-none", className)}>
+    <div
+      className={cn(
+        "bg-checkerboard relative w-full overflow-hidden rounded-lg border select-none",
+        className,
+      )}
+    >
       <img
         src={src}
         alt={alt}

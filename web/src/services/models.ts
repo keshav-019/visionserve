@@ -12,10 +12,13 @@ export interface ModelFilters {
 export function listModels(filters: ModelFilters = {}) {
   let out = models;
   if (filters.task && filters.task !== "all") out = out.filter((m) => m.task === filters.task);
-  if (filters.status && filters.status !== "all") out = out.filter((m) => m.status === filters.status);
+  if (filters.status && filters.status !== "all")
+    out = out.filter((m) => m.status === filters.status);
   if (filters.search) {
     const q = filters.search.toLowerCase();
-    out = out.filter((m) => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q));
+    out = out.filter(
+      (m) => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q),
+    );
   }
   return respond(out);
 }

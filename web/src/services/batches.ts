@@ -11,8 +11,10 @@ export interface BatchFilters {
 
 export function listBatches(filters: BatchFilters = {}) {
   let out = batches;
-  if (filters.status && filters.status !== "all") out = out.filter((b) => b.status === filters.status);
-  if (filters.modelId && filters.modelId !== "all") out = out.filter((b) => b.modelId === filters.modelId);
+  if (filters.status && filters.status !== "all")
+    out = out.filter((b) => b.status === filters.status);
+  if (filters.modelId && filters.modelId !== "all")
+    out = out.filter((b) => b.modelId === filters.modelId);
   if (filters.search) {
     const q = filters.search.toLowerCase();
     out = out.filter((b) => b.id.toLowerCase().includes(q) || b.owner.toLowerCase().includes(q));

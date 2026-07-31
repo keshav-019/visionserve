@@ -90,11 +90,17 @@ export function StatusBadge({
       <span className="relative flex size-1.5">
         {pulsing.has(status) && (
           <span
-            className={cn("absolute inline-flex size-full animate-ping rounded-full opacity-60", dotClasses[tone])}
+            className={cn(
+              "absolute inline-flex size-full animate-ping rounded-full opacity-60",
+              dotClasses[tone],
+            )}
             aria-hidden
           />
         )}
-        <span className={cn("relative inline-flex size-1.5 rounded-full", dotClasses[tone])} aria-hidden />
+        <span
+          className={cn("relative inline-flex size-1.5 rounded-full", dotClasses[tone])}
+          aria-hidden
+        />
       </span>
       {text}
     </span>

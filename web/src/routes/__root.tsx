@@ -101,9 +101,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Dashboard — VisionServe" },
-      { name: "twitter:description", content: "Real-time overview of inference traffic, latency, model deployments, and quota usage across your VisionServe workspace." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/17d25200-6822-4293-b97a-c6fe6c35447f/id-preview-b0b84176--ac5a8084-656a-48a7-a636-05da1be3a7cc.lovable.app-1785429115144.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/17d25200-6822-4293-b97a-c6fe6c35447f/id-preview-b0b84176--ac5a8084-656a-48a7-a636-05da1be3a7cc.lovable.app-1785429115144.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Real-time overview of inference traffic, latency, model deployments, and quota usage across your VisionServe workspace.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/17d25200-6822-4293-b97a-c6fe6c35447f/id-preview-b0b84176--ac5a8084-656a-48a7-a636-05da1be3a7cc.lovable.app-1785429115144.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/17d25200-6822-4293-b97a-c6fe6c35447f/id-preview-b0b84176--ac5a8084-656a-48a7-a636-05da1be3a7cc.lovable.app-1785429115144.png",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

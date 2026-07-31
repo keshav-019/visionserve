@@ -66,7 +66,9 @@ export function ChartCard({
       <CardHeader className="flex-row items-start justify-between gap-3 space-y-0 px-4 py-3">
         <div>
           <CardTitle className="text-sm font-medium">{title}</CardTitle>
-          {description && <CardDescription className="mt-0.5 text-xs">{description}</CardDescription>}
+          {description && (
+            <CardDescription className="mt-0.5 text-xs">{description}</CardDescription>
+          )}
         </div>
         {actions}
       </CardHeader>
@@ -192,8 +194,17 @@ export function BarTrend({
 }) {
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={data} layout={layout} margin={{ top: 8, right: 12, bottom: 0, left: layout === "vertical" ? 8 : 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={layout !== "vertical"} vertical={layout === "vertical"} />
+      <BarChart
+        data={data}
+        layout={layout}
+        margin={{ top: 8, right: 12, bottom: 0, left: layout === "vertical" ? 8 : 0 }}
+      >
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke="var(--border)"
+          horizontal={layout !== "vertical"}
+          vertical={layout === "vertical"}
+        />
         {layout === "vertical" ? (
           <>
             <XAxis type="number" {...axisProps} tickFormatter={yFormatter as never} />
@@ -205,7 +216,11 @@ export function BarTrend({
             <YAxis {...axisProps} width={52} tickFormatter={yFormatter as never} />
           </>
         )}
-        <Tooltip contentStyle={tooltipStyle} formatter={yFormatter as never} cursor={{ fill: "var(--muted)", opacity: 0.4 }} />
+        <Tooltip
+          contentStyle={tooltipStyle}
+          formatter={yFormatter as never}
+          cursor={{ fill: "var(--muted)", opacity: 0.4 }}
+        />
         {series.length > 1 && <Legend wrapperStyle={{ fontSize: 12 }} />}
         {series.map((s, i) => (
           <Bar

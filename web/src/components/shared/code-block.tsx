@@ -17,7 +17,9 @@ export function CodeBlock({
   return (
     <div className={cn("overflow-hidden rounded-lg border bg-muted/40", className)}>
       <div className="flex items-center justify-between border-b bg-muted/60 px-3 py-1.5">
-        <span className="font-mono text-[11px] text-muted-foreground">{title ?? language ?? "code"}</span>
+        <span className="font-mono text-[11px] text-muted-foreground">
+          {title ?? language ?? "code"}
+        </span>
         <CopyButton value={code} label={`Copy ${language ?? "code"}`} />
       </div>
       <pre
@@ -32,6 +34,8 @@ export function CodeBlock({
 
 export function InlineCode({ children }: { children: string }) {
   return (
-    <code className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[0.85em]">{children}</code>
+    <code className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[0.85em]">
+      {children}
+    </code>
   );
 }

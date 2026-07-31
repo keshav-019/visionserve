@@ -52,7 +52,8 @@ export function ConfirmDialog({
         {requireTyped !== undefined && (
           <div className="space-y-2">
             <Label htmlFor="confirm-typed" className="text-xs text-muted-foreground">
-              Type <span className="font-mono font-medium text-foreground">{requireTyped}</span> to confirm
+              Type <span className="font-mono font-medium text-foreground">{requireTyped}</span> to
+              confirm
             </Label>
             <Input
               id="confirm-typed"

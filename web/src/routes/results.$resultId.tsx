@@ -18,7 +18,14 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { resultQueryOptions } from "@/services/results";
 import { formatDateTime, formatMs, formatPercent, formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -27,9 +34,15 @@ export const Route = createFileRoute("/results/$resultId")({
   head: ({ params }) => ({
     meta: [
       { title: `${params.resultId} — Results — VisionServe` },
-      { name: "description", content: `Inference result ${params.resultId}: annotated image, detections, OCR text, and timing.` },
+      {
+        name: "description",
+        content: `Inference result ${params.resultId}: annotated image, detections, OCR text, and timing.`,
+      },
       { property: "og:title", content: `${params.resultId} — VisionServe` },
-      { property: "og:description", content: "Annotated inference result with detections and timing." },
+      {
+        property: "og:description",
+        content: "Annotated inference result with detections and timing.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -76,13 +89,16 @@ function ResultDetailPage() {
         title={
           <span className="flex flex-wrap items-center gap-2.5">
             <IdChip value={result.id} head={14} tail={6} />
-            <span className="rounded-md border bg-muted px-1.5 py-0.5 font-mono text-[10px]">{result.operation}</span>
+            <span className="rounded-md border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+              {result.operation}
+            </span>
             <EnvBadge env={result.environment} />
           </span>
         }
         description={
           <span className="font-mono text-xs">
-            {result.modelId}@{result.modelVersion} · {formatRelative(result.createdAt)} · expires {formatRelative(result.expiresAt)}
+            {result.modelId}@{result.modelVersion} · {formatRelative(result.createdAt)} · expires{" "}
+            {formatRelative(result.expiresAt)}
           </span>
         }
         actions={
@@ -105,7 +121,11 @@ function ResultDetailPage() {
               title="Delete this result?"
               description="The result JSON and annotated image are removed from storage immediately. The original upload is kept per retention policy."
               confirmLabel="Delete result"
-              onConfirm={() => toast.success("Result deleted", { description: `${result.id} was removed from storage.` })}
+              onConfirm={() =>
+                toast.success("Result deleted", {
+                  description: `${result.id} was removed from storage.`,
+                })
+              }
             />
           </>
         }
@@ -134,7 +154,14 @@ function ResultDetailPage() {
                   <Label htmlFor="res-conf">Confidence ≥</Label>
                   <span className="font-mono text-xs font-tnum">{confidence.toFixed(2)}</span>
                 </div>
-                <Slider id="res-conf" min={0.05} max={0.95} step={0.05} value={[confidence]} onValueChange={([v]) => setConfidence(v)} />
+                <Slider
+                  id="res-conf"
+                  min={0.05}
+                  max={0.95}
+                  step={0.05}
+                  value={[confidence]}
+                  onValueChange={([v]) => setConfidence(v)}
+                />
               </div>
               <div className="flex items-center justify-between sm:justify-center sm:gap-3">
                 <Label htmlFor="res-boxes">Boxes</Label>
@@ -161,10 +188,18 @@ function ResultDetailPage() {
                   </TableHeader>
                   <TableBody>
                     {filtered.map((d, i) => (
-                      <TableRow key={i} className={cn("cursor-pointer", selectedBox === i && "bg-accent/50")} onClick={() => setSelectedBox(selectedBox === i ? null : i)}>
+                      <TableRow
+                        key={i}
+                        className={cn("cursor-pointer", selectedBox === i && "bg-accent/50")}
+                        onClick={() => setSelectedBox(selectedBox === i ? null : i)}
+                      >
                         <TableCell className="py-1.5 text-sm font-medium">{d.label}</TableCell>
-                        <TableCell className="py-1.5 font-mono text-xs text-muted-foreground">{d.classId}</TableCell>
-                        <TableCell className="py-1.5 font-mono text-xs font-tnum">{formatPercent(d.confidence * 100, 1)}</TableCell>
+                        <TableCell className="py-1.5 font-mono text-xs text-muted-foreground">
+                          {d.classId}
+                        </TableCell>
+                        <TableCell className="py-1.5 font-mono text-xs font-tnum">
+                          {formatPercent(d.confidence * 100, 1)}
+                        </TableCell>
                         <TableCell className="py-1.5 font-mono text-xs text-muted-foreground">
                           {d.box.x}, {d.box.y}, {d.box.width}, {d.box.height}
                         </TableCell>
@@ -178,24 +213,38 @@ function ResultDetailPage() {
 
           {result.ocrText && (
             <SectionCard title="Extracted text">
-              <pre className="rounded-md border bg-muted/40 p-3 font-mono text-xs whitespace-pre-wrap">{result.ocrText}</pre>
+              <pre className="rounded-md border bg-muted/40 p-3 font-mono text-xs whitespace-pre-wrap">
+                {result.ocrText}
+              </pre>
             </SectionCard>
           )}
 
           {result.predictions && (
             <SectionCard title="Predictions">
               <ul className="space-y-2">
-                {[...result.predictions].sort((a, b) => b.confidence - a.confidence).map((p, i) => (
-                  <li key={p.label} className="space-y-1">
-                    <div className="flex items-baseline justify-between text-xs">
-                      <span className={cn("font-medium", i === 0 && "text-primary")}>{p.label}</span>
-                      <span className="font-mono font-tnum text-muted-foreground">{formatPercent(p.confidence * 100, 1)}</span>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                      <div className={cn("h-full rounded-full", i === 0 ? "bg-primary" : "bg-muted-foreground/40")} style={{ width: `${p.confidence * 100}%` }} />
-                    </div>
-                  </li>
-                ))}
+                {[...result.predictions]
+                  .sort((a, b) => b.confidence - a.confidence)
+                  .map((p, i) => (
+                    <li key={p.label} className="space-y-1">
+                      <div className="flex items-baseline justify-between text-xs">
+                        <span className={cn("font-medium", i === 0 && "text-primary")}>
+                          {p.label}
+                        </span>
+                        <span className="font-mono font-tnum text-muted-foreground">
+                          {formatPercent(p.confidence * 100, 1)}
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className={cn(
+                            "h-full rounded-full",
+                            i === 0 ? "bg-primary" : "bg-muted-foreground/40",
+                          )}
+                          style={{ width: `${p.confidence * 100}%` }}
+                        />
+                      </div>
+                    </li>
+                  ))}
               </ul>
             </SectionCard>
           )}
@@ -206,19 +255,33 @@ function ResultDetailPage() {
               <TabsTrigger value="meta">Metadata</TabsTrigger>
             </TabsList>
             <TabsContent value="json" className="pt-3">
-              <JsonView data={{ ...result, inputImage: "<image-binary>" }} title={`${result.id}.json`} />
+              <JsonView
+                data={{ ...result, inputImage: "<image-binary>" }}
+                title={`${result.id}.json`}
+              />
             </TabsContent>
             <TabsContent value="meta" className="pt-3">
               <SectionCard>
                 <DescriptionList
                   items={[
                     { term: "Result ID", value: <IdChip value={result.id} head={14} tail={6} /> },
-                    { term: "Request ID", value: <IdChip value={result.requestId} head={14} tail={4} /> },
+                    {
+                      term: "Request ID",
+                      value: <IdChip value={result.requestId} head={14} tail={4} />,
+                    },
                     { term: "Job", value: result.jobId ?? "—", mono: true },
                     { term: "Batch", value: result.batchId ?? "—", mono: true },
-                    { term: "Model", value: `${result.modelId}@${result.modelVersion}`, mono: true },
+                    {
+                      term: "Model",
+                      value: `${result.modelId}@${result.modelVersion}`,
+                      mono: true,
+                    },
                     { term: "Owner", value: result.owner, mono: true },
-                    { term: "Input dimensions", value: `${result.inputWidth} × ${result.inputHeight}`, mono: true },
+                    {
+                      term: "Input dimensions",
+                      value: `${result.inputWidth} × ${result.inputHeight}`,
+                      mono: true,
+                    },
                     { term: "Created", value: formatDateTime(result.createdAt) },
                     { term: "Expires", value: formatDateTime(result.expiresAt) },
                   ]}

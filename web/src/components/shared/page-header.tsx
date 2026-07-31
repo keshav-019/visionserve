@@ -45,12 +45,18 @@ export function SectionCard({
         <CardHeader className="flex-row items-start justify-between gap-3 space-y-0 px-4 py-3">
           <div>
             <CardTitle className="text-sm font-medium">{title}</CardTitle>
-            {description && <CardDescription className="mt-0.5 text-xs">{description}</CardDescription>}
+            {description && (
+              <CardDescription className="mt-0.5 text-xs">{description}</CardDescription>
+            )}
           </div>
           {actions && <div className="flex items-center gap-2">{actions}</div>}
         </CardHeader>
       )}
-      <CardContent className={cn("px-4", title || actions ? "pt-0 pb-4" : "py-4", contentClassName)}>{children}</CardContent>
+      <CardContent
+        className={cn("px-4", title || actions ? "pt-0 pb-4" : "py-4", contentClassName)}
+      >
+        {children}
+      </CardContent>
     </Card>
   );
 }

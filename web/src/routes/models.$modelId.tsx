@@ -26,9 +26,15 @@ export const Route = createFileRoute("/models/$modelId")({
   head: ({ params }) => ({
     meta: [
       { title: `${params.modelId} — Model Registry — VisionServe` },
-      { name: "description", content: `Model ${params.modelId}: versions, runtime configuration, metrics, and deployment actions.` },
+      {
+        name: "description",
+        content: `Model ${params.modelId}: versions, runtime configuration, metrics, and deployment actions.`,
+      },
       { property: "og:title", content: `${params.modelId} — VisionServe` },
-      { property: "og:description", content: "Model versions, runtime configuration, and metrics." },
+      {
+        property: "og:description",
+        content: "Model versions, runtime configuration, and metrics.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -63,13 +69,55 @@ function ModelDetailPage() {
   const modelDeployments = deployments.filter((d) => d.modelId === model.id);
 
   const versionColumns: ColumnDef<ModelVersion, unknown>[] = [
-    { accessorKey: "version", header: "Version", cell: ({ row }) => <span className="font-mono text-xs font-medium">{row.original.version}</span> },
-    { accessorKey: "status", header: "Status", cell: ({ row }) => <StatusBadge status={row.original.status} /> },
-    { accessorKey: "requests", header: "Requests", cell: ({ row }) => <span className="font-mono text-xs font-tnum">{formatCompact(row.original.requests)}</span> },
-    { accessorKey: "avgLatencyMs", header: "Latency", cell: ({ row }) => <span className="font-mono text-xs font-tnum">{formatMs(row.original.avgLatencyMs)}</span> },
-    { accessorKey: "errorRate", header: "Error rate", cell: ({ row }) => <span className="font-mono text-xs font-tnum">{formatPercent(row.original.errorRate)}</span> },
-    { accessorKey: "sizeBytes", header: "Size", cell: ({ row }) => <span className="font-mono text-xs font-tnum">{formatBytes(row.original.sizeBytes)}</span> },
-    { accessorKey: "createdAt", header: "Created", cell: ({ row }) => <span className="text-xs text-muted-foreground">{formatDateTime(row.original.createdAt)}</span> },
+    {
+      accessorKey: "version",
+      header: "Version",
+      cell: ({ row }) => (
+        <span className="font-mono text-xs font-medium">{row.original.version}</span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+    {
+      accessorKey: "requests",
+      header: "Requests",
+      cell: ({ row }) => (
+        <span className="font-mono text-xs font-tnum">{formatCompact(row.original.requests)}</span>
+      ),
+    },
+    {
+      accessorKey: "avgLatencyMs",
+      header: "Latency",
+      cell: ({ row }) => (
+        <span className="font-mono text-xs font-tnum">{formatMs(row.original.avgLatencyMs)}</span>
+      ),
+    },
+    {
+      accessorKey: "errorRate",
+      header: "Error rate",
+      cell: ({ row }) => (
+        <span className="font-mono text-xs font-tnum">{formatPercent(row.original.errorRate)}</span>
+      ),
+    },
+    {
+      accessorKey: "sizeBytes",
+      header: "Size",
+      cell: ({ row }) => (
+        <span className="font-mono text-xs font-tnum">{formatBytes(row.original.sizeBytes)}</span>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {formatDateTime(row.original.createdAt)}
+        </span>
+      ),
+    },
     {
       id: "actions",
       header: "",
@@ -114,7 +162,11 @@ function ModelDetailPage() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => toast.success("Deployment queued", { description: `${model.name}@${model.activeVersion} will roll out to eu-central-1.` })}
+              onClick={() =>
+                toast.success("Deployment queued", {
+                  description: `${model.name}@${model.activeVersion} will roll out to eu-central-1.`,
+                })
+              }
             >
               <Rocket className="size-3.5" aria-hidden />
               Deploy
@@ -129,7 +181,11 @@ function ModelDetailPage() {
               title={`Unload ${model.name}?`}
               description="Workers will release the session. In-flight requests finish; new requests will be rejected with MODEL_UNAVAILABLE until it is reloaded."
               confirmLabel="Unload model"
-              onConfirm={() => toast.success("Model unloaded", { description: `${model.name} sessions released on all workers.` })}
+              onConfirm={() =>
+                toast.success("Model unloaded", {
+                  description: `${model.name} sessions released on all workers.`,
+                })
+              }
             />
             <ConfirmDialog
               trigger={
@@ -142,17 +198,40 @@ function ModelDetailPage() {
               description="This permanently removes the model, all versions, and its deployment history. Results and jobs are retained."
               confirmLabel="Delete model"
               requireTyped={model.name}
-              onConfirm={() => toast.success("Model deleted", { description: `${model.name} was removed from the registry.` })}
+              onConfirm={() =>
+                toast.success("Model deleted", {
+                  description: `${model.name} was removed from the registry.`,
+                })
+              }
             />
           </>
         }
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard label="Total requests" value={formatCompact(model.requests)} icon={undefined} hint="lifetime" />
-        <MetricCard label="Avg latency" value={formatMs(model.avgLatencyMs)} hint="active version" />
-        <MetricCard label="Error rate" value={formatPercent(model.errorRate)} deltaInvert hint="24h rolling" />
-        <MetricCard label="Active version" value={`v${model.activeVersion}`} mono hint={`${model.versions.length} versions`} />
+        <MetricCard
+          label="Total requests"
+          value={formatCompact(model.requests)}
+          icon={undefined}
+          hint="lifetime"
+        />
+        <MetricCard
+          label="Avg latency"
+          value={formatMs(model.avgLatencyMs)}
+          hint="active version"
+        />
+        <MetricCard
+          label="Error rate"
+          value={formatPercent(model.errorRate)}
+          deltaInvert
+          hint="24h rolling"
+        />
+        <MetricCard
+          label="Active version"
+          value={`v${model.activeVersion}`}
+          mono
+          hint={`${model.versions.length} versions`}
+        />
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
@@ -182,10 +261,18 @@ function ModelDetailPage() {
               />
             </SectionCard>
             <div className="space-y-4">
-              <SectionCard title={`Labels (${model.labels.length})`} description="Classes the model can emit">
+              <SectionCard
+                title={`Labels (${model.labels.length})`}
+                description="Classes the model can emit"
+              >
                 <div className="flex flex-wrap gap-1.5">
                   {model.labels.map((l) => (
-                    <span key={l} className="rounded-md border bg-muted px-2 py-0.5 font-mono text-[11px]">{l}</span>
+                    <span
+                      key={l}
+                      className="rounded-md border bg-muted px-2 py-0.5 font-mono text-[11px]"
+                    >
+                      {l}
+                    </span>
                   ))}
                 </div>
               </SectionCard>

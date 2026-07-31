@@ -23,9 +23,15 @@ export const Route = createFileRoute("/jobs/$jobId")({
   head: ({ params }) => ({
     meta: [
       { title: `${params.jobId} — Jobs — VisionServe` },
-      { name: "description", content: `Inference job ${params.jobId}: status, events, timing breakdown, and result.` },
+      {
+        name: "description",
+        content: `Inference job ${params.jobId}: status, events, timing breakdown, and result.`,
+      },
       { property: "og:title", content: `${params.jobId} — VisionServe` },
-      { property: "og:description", content: "Inference job status, events, and timing breakdown." },
+      {
+        property: "og:description",
+        content: "Inference job status, events, and timing breakdown.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -42,7 +48,9 @@ function JobDetailPage() {
   const navigate = useNavigate();
   const { data: job } = useSuspenseQuery(jobQueryOptions(jobId));
   const { data: allResults } = useSuspenseQuery(resultsQueryOptions());
-  const { data: events } = useSuspenseQuery(job ? jobEventsQueryOptions(job) : { queryKey: ["noop"], queryFn: () => Promise.resolve([]) });
+  const { data: events } = useSuspenseQuery(
+    job ? jobEventsQueryOptions(job) : { queryKey: ["noop"], queryFn: () => Promise.resolve([]) },
+  );
 
   if (!job) {
     return (
@@ -79,7 +87,8 @@ function JobDetailPage() {
         }
         description={
           <span className="font-mono text-xs">
-            {job.operation} on {job.modelId}@{job.modelVersion} · submitted {formatRelative(job.createdAt)}
+            {job.operation} on {job.modelId}@{job.modelVersion} · submitted{" "}
+            {formatRelative(job.createdAt)}
           </span>
         }
         actions={
@@ -95,13 +104,21 @@ function JobDetailPage() {
                 title="Cancel this job?"
                 description="The worker will stop processing at the next checkpoint. Already-computed partial results are discarded."
                 confirmLabel="Cancel job"
-                onConfirm={() => toast.success("Job cancelled", { description: `${job.id} was removed from the worker.` })}
+                onConfirm={() =>
+                  toast.success("Job cancelled", {
+                    description: `${job.id} was removed from the worker.`,
+                  })
+                }
               />
             )}
             {job.status === "failed" && (
               <Button
                 size="sm"
-                onClick={() => toast.success("Job re-queued", { description: "A new job was created with the same input." })}
+                onClick={() =>
+                  toast.success("Job re-queued", {
+                    description: "A new job was created with the same input.",
+                  })
+                }
               >
                 <RotateCw className="size-3.5" aria-hidden />
                 Retry
@@ -122,7 +139,9 @@ function JobDetailPage() {
       {(job.status === "running" || job.status === "queued") && (
         <div className="rounded-lg border bg-card px-4 py-3">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-medium">{job.status === "queued" ? "Waiting for a worker…" : "Processing…"}</span>
+            <span className="font-medium">
+              {job.status === "queued" ? "Waiting for a worker…" : "Processing…"}
+            </span>
             <span className="font-mono font-tnum text-muted-foreground">{job.progress}%</span>
           </div>
           <Progress value={job.progress} className="mt-2 h-1.5" />
@@ -130,7 +149,10 @@ function JobDetailPage() {
       )}
 
       {job.errorCode && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3" role="alert">
+        <div
+          className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3"
+          role="alert"
+        >
           <p className="font-mono text-xs font-semibold text-destructive">{job.errorCode}</p>
           <p className="mt-1 text-sm text-muted-foreground">{job.errorMessage}</p>
         </div>
@@ -149,7 +171,13 @@ function JobDetailPage() {
                 { term: "Owner", value: job.owner, mono: true },
                 { term: "Environment", value: job.environment, mono: true },
                 { term: "Input file", value: job.inputFile, mono: true },
-                { term: "Input size", value: job.inputDimensions ? `${formatBytes(job.inputSizeBytes)} · ${job.inputDimensions}` : formatBytes(job.inputSizeBytes), mono: true },
+                {
+                  term: "Input size",
+                  value: job.inputDimensions
+                    ? `${formatBytes(job.inputSizeBytes)} · ${job.inputDimensions}`
+                    : formatBytes(job.inputSizeBytes),
+                  mono: true,
+                },
                 { term: "Queue wait", value: formatMs(job.queueWaitMs), mono: true },
                 { term: "Created", value: formatDateTime(job.createdAt) },
                 { term: "Started", value: formatDateTime(job.startedAt) },
@@ -166,15 +194,25 @@ function JobDetailPage() {
                   <span
                     className={cn(
                       "absolute top-1 -left-[26.5px] size-2.5 rounded-full border-2 border-background",
-                      e.level === "error" ? "bg-destructive" : e.level === "warn" ? "bg-warning" : "bg-primary",
+                      e.level === "error"
+                        ? "bg-destructive"
+                        : e.level === "warn"
+                          ? "bg-warning"
+                          : "bg-primary",
                     )}
                     aria-hidden
                   />
                   <div className="flex flex-wrap items-baseline gap-x-3">
-                    <span className="font-mono text-[11px] text-muted-foreground">{formatDateTime(e.ts)}</span>
-                    <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase">{e.stage}</span>
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      {formatDateTime(e.ts)}
+                    </span>
+                    <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase">
+                      {e.stage}
+                    </span>
                   </div>
-                  <p className={cn("mt-0.5 text-sm", e.level === "error" && "text-destructive")}>{e.message}</p>
+                  <p className={cn("mt-0.5 text-sm", e.level === "error" && "text-destructive")}>
+                    {e.message}
+                  </p>
                 </li>
               ))}
             </ol>
@@ -199,7 +237,10 @@ function JobDetailPage() {
                   </Link>
                 </Button>
               ) : (
-                <p className="text-xs text-muted-foreground">No persisted result — the job {job.status === "succeeded" ? "has expired" : "has not produced output yet"}.</p>
+                <p className="text-xs text-muted-foreground">
+                  No persisted result — the job{" "}
+                  {job.status === "succeeded" ? "has expired" : "has not produced output yet"}.
+                </p>
               )}
               <Button
                 variant="outline"

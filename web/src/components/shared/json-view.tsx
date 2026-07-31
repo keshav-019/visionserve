@@ -9,5 +9,12 @@ export function JsonView({
   title?: string;
   maxHeight?: number;
 }) {
-  return <CodeBlock code={JSON.stringify(data, null, 2)} language="json" title={title} maxHeight={maxHeight} />;
+  return (
+    <CodeBlock
+      code={JSON.stringify(data, null, 2)}
+      language="json"
+      title={title}
+      maxHeight={maxHeight}
+    />
+  );
 }

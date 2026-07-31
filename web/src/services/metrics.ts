@@ -39,7 +39,10 @@ export const overviewQueryOptions = () =>
   });
 
 export const requestVolumeQueryOptions = (range: "1h" | "24h" | "7d" | "30d") =>
-  queryOptions({ queryKey: ["metrics", "volume", range], queryFn: () => respond(requestVolumeSeries(range)) });
+  queryOptions({
+    queryKey: ["metrics", "volume", range],
+    queryFn: () => respond(requestVolumeSeries(range)),
+  });
 
 export const latencyQueryOptions = () =>
   queryOptions({ queryKey: ["metrics", "latency"], queryFn: () => respond(latencySeries()) });
@@ -59,7 +62,14 @@ export const batchSizeQueryOptions = () =>
 export const distributionsQueryOptions = () =>
   queryOptions({
     queryKey: ["metrics", "distributions"],
-    queryFn: () => respond({ errorsByCode, confidenceHistogram, detectionCountHistogram, usageByModel, usageByOperation }),
+    queryFn: () =>
+      respond({
+        errorsByCode,
+        confidenceHistogram,
+        detectionCountHistogram,
+        usageByModel,
+        usageByOperation,
+      }),
   });
 
 export const quotasQueryOptions = () =>

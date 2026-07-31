@@ -11,8 +11,10 @@ export interface ResultFilters {
 
 export function listResults(filters: ResultFilters = {}) {
   let out = results;
-  if (filters.operation && filters.operation !== "all") out = out.filter((r) => r.operation === filters.operation);
-  if (filters.modelId && filters.modelId !== "all") out = out.filter((r) => r.modelId === filters.modelId);
+  if (filters.operation && filters.operation !== "all")
+    out = out.filter((r) => r.operation === filters.operation);
+  if (filters.modelId && filters.modelId !== "all")
+    out = out.filter((r) => r.modelId === filters.modelId);
   if (filters.search) {
     const q = filters.search.toLowerCase();
     out = out.filter(

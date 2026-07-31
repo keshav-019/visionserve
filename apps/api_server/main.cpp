@@ -77,24 +77,23 @@ void applyCorsHeaders(const drogon::HttpRequestPtr &req, const drogon::HttpRespo
 }
 
 void registerCors() {
-    drogon::app().registerPreRoutingAdvice(
-        [](const drogon::HttpRequestPtr &req,
-           drogon::AdviceCallback &&adviceCallback,
-           drogon::AdviceChainCallback &&adviceChainCallback) {
-            if (req->method() != drogon::Options) {
-                adviceChainCallback();
-                return;
-            }
-            auto resp = drogon::HttpResponse::newHttpResponse();
-            resp->setStatusCode(drogon::k204NoContent);
-            applyCorsHeaders(req, resp);
-            resp->addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            resp->addHeader("Access-Control-Allow-Headers",
-                             req->getHeader("Access-Control-Request-Headers").empty()
-                                 ? "Content-Type, Authorization"
-                                 : req->getHeader("Access-Control-Request-Headers"));
-            adviceCallback(resp);
-        });
+    drogon::app().registerPreRoutingAdvice([](const drogon::HttpRequestPtr &req,
+                                              drogon::AdviceCallback &&adviceCallback,
+                                              drogon::AdviceChainCallback &&adviceChainCallback) {
+        if (req->method() != drogon::Options) {
+            adviceChainCallback();
+            return;
+        }
+        auto resp = drogon::HttpResponse::newHttpResponse();
+        resp->setStatusCode(drogon::k204NoContent);
+        applyCorsHeaders(req, resp);
+        resp->addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        resp->addHeader("Access-Control-Allow-Headers",
+                        req->getHeader("Access-Control-Request-Headers").empty()
+                            ? "Content-Type, Authorization"
+                            : req->getHeader("Access-Control-Request-Headers"));
+        adviceCallback(resp);
+    });
 
     drogon::app().registerPostHandlingAdvice(
         [](const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp) {
@@ -132,10 +131,9 @@ void registerSystemEndpoints() {
             Json::Value body;
             body["service"] = std::string{kServiceName};
             body["version"] = std::string{kVersion};
-            const auto uptimeSeconds =
-                std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() -
-                                                                   kStartTime)
-                    .count();
+            const auto uptimeSeconds = std::chrono::duration_cast<std::chrono::seconds>(
+                                           std::chrono::steady_clock::now() - kStartTime)
+                                           .count();
             body["uptime_seconds"] = static_cast<Json::Int64>(uptimeSeconds);
             auto resp = drogon::HttpResponse::newHttpJsonResponse(body);
             callback(resp);

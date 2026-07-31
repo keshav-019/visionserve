@@ -21,7 +21,10 @@ export const notificationsQueryOptions = () =>
   queryOptions({ queryKey: ["notifications"], queryFn: () => respond(notifications) });
 
 export const teamQueryOptions = () =>
-  queryOptions({ queryKey: ["team"], queryFn: () => respond({ members: teamMembers, invitations }) });
+  queryOptions({
+    queryKey: ["team"],
+    queryFn: () => respond({ members: teamMembers, invitations }),
+  });
 
 export const auditLogsQueryOptions = () =>
   queryOptions({ queryKey: ["audit-logs"], queryFn: () => respond(auditLogs) });

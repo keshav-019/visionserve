@@ -22,9 +22,15 @@ export const Route = createFileRoute("/deployments/$deploymentId")({
   head: ({ params }) => ({
     meta: [
       { title: `${params.deploymentId} — Deployments — VisionServe` },
-      { name: "description", content: `Deployment ${params.deploymentId}: replica health, traffic, latency, and scaling controls.` },
+      {
+        name: "description",
+        content: `Deployment ${params.deploymentId}: replica health, traffic, latency, and scaling controls.`,
+      },
       { property: "og:title", content: `${params.deploymentId} — VisionServe` },
-      { property: "og:description", content: "Deployment replica health, traffic, and scaling controls." },
+      {
+        property: "og:description",
+        content: "Deployment replica health, traffic, and scaling controls.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -78,19 +84,31 @@ function DeploymentDetailPage() {
         }
         description={
           <span className="font-mono text-xs">
-            {deployment.modelId}@{deployment.version} · {deployment.region} · updated {formatDateTime(deployment.updatedAt)}
+            {deployment.modelId}@{deployment.version} · {deployment.region} · updated{" "}
+            {formatDateTime(deployment.updatedAt)}
           </span>
         }
         actions={
           deployment.status === "paused" ? (
-            <Button size="sm" onClick={() => toast.success("Deployment resumed", { description: "Traffic is flowing to replicas again." })}>
+            <Button
+              size="sm"
+              onClick={() =>
+                toast.success("Deployment resumed", {
+                  description: "Traffic is flowing to replicas again.",
+                })
+              }
+            >
               Resume
             </Button>
           ) : (
             <Button
               size="sm"
               variant="outline"
-              onClick={() => toast.success("Deployment paused", { description: "New requests will queue until resumed." })}
+              onClick={() =>
+                toast.success("Deployment paused", {
+                  description: "New requests will queue until resumed.",
+                })
+              }
             >
               <Pause className="size-3.5" aria-hidden />
               Pause
@@ -100,10 +118,23 @@ function DeploymentDetailPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard label="Replicas" value={`${deployment.replicas}`} hint={`max concurrency ${deployment.maxConcurrency}`} />
+        <MetricCard
+          label="Replicas"
+          value={`${deployment.replicas}`}
+          hint={`max concurrency ${deployment.maxConcurrency}`}
+        />
         <MetricCard label="P95 latency" value={formatMs(deployment.p95Ms)} hint="last hour" />
-        <MetricCard label="Error rate" value={formatPercent(deployment.errorRate)} deltaInvert hint="24h rolling" />
-        <MetricCard label="Queue depth" value={`${deployment.queueDepth}`} hint="pending requests" />
+        <MetricCard
+          label="Error rate"
+          value={formatPercent(deployment.errorRate)}
+          deltaInvert
+          hint="24h rolling"
+        />
+        <MetricCard
+          label="Queue depth"
+          value={`${deployment.queueDepth}`}
+          hint="pending requests"
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -138,9 +169,18 @@ function DeploymentDetailPage() {
                   <Label htmlFor="replicas">Replicas</Label>
                   <span className="font-mono text-xs font-tnum">{replicas}</span>
                 </div>
-                <Slider id="replicas" min={1} max={16} step={1} value={[replicas]} onValueChange={([v]) => setReplicas(v)} />
+                <Slider
+                  id="replicas"
+                  min={1}
+                  max={16}
+                  step={1}
+                  value={[replicas]}
+                  onValueChange={([v]) => setReplicas(v)}
+                />
                 <p className="text-[11px] text-muted-foreground">
-                  Each replica handles up to {Math.floor(deployment.maxConcurrency / Math.max(1, deployment.replicas))} concurrent requests.
+                  Each replica handles up to{" "}
+                  {Math.floor(deployment.maxConcurrency / Math.max(1, deployment.replicas))}{" "}
+                  concurrent requests.
                 </p>
               </div>
               <Button
@@ -148,7 +188,9 @@ function DeploymentDetailPage() {
                 className="w-full"
                 disabled={!dirty}
                 onClick={() =>
-                  toast.success("Scaling started", { description: `Rolling ${deployment.name} from ${deployment.replicas} to ${replicas} replicas.` })
+                  toast.success("Scaling started", {
+                    description: `Rolling ${deployment.name} from ${deployment.replicas} to ${replicas} replicas.`,
+                  })
                 }
               >
                 <Scale className="size-3.5" aria-hidden />
@@ -165,7 +207,11 @@ function DeploymentDetailPage() {
                 { term: "Execution provider", value: deployment.executionProvider, mono: true },
                 { term: "Region", value: deployment.region, mono: true },
                 { term: "Traffic share", value: `${deployment.trafficPct}%`, mono: true },
-                { term: "Max concurrency", value: `${deployment.maxConcurrency} requests`, mono: true },
+                {
+                  term: "Max concurrency",
+                  value: `${deployment.maxConcurrency} requests`,
+                  mono: true,
+                },
                 { term: "Last updated", value: formatDateTime(deployment.updatedAt) },
               ]}
             />

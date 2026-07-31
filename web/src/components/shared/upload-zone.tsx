@@ -40,7 +40,9 @@ export function UploadZone({
     (file: File) => {
       setError(null);
       if (!ACCEPTED.includes(file.type)) {
-        setError(`UNSUPPORTED_IMAGE_FORMAT — ${file.type || "unknown"} is not supported. Use JPEG, PNG, WebP, or TIFF.`);
+        setError(
+          `UNSUPPORTED_IMAGE_FORMAT — ${file.type || "unknown"} is not supported. Use JPEG, PNG, WebP, or TIFF.`,
+        );
         return;
       }
       if (file.size > MAX_BYTES) {
@@ -77,7 +79,9 @@ export function UploadZone({
   // Paste from clipboard
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
-      const item = Array.from(e.clipboardData?.items ?? []).find((i) => i.type.startsWith("image/"));
+      const item = Array.from(e.clipboardData?.items ?? []).find((i) =>
+        i.type.startsWith("image/"),
+      );
       const file = item?.getAsFile();
       if (file) accept(file);
     };
@@ -104,7 +108,9 @@ export function UploadZone({
       setLoadingUrl(false);
     };
     img.onerror = () => {
-      setError("INVALID_IMAGE — could not fetch or decode the image at this URL (CORS or network error).");
+      setError(
+        "INVALID_IMAGE — could not fetch or decode the image at this URL (CORS or network error).",
+      );
       setLoadingUrl(false);
     };
     img.src = urlInput;
@@ -177,13 +183,19 @@ export function UploadZone({
         className={cn(
           "flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 text-center transition-colors",
           compact ? "py-6" : "py-10",
-          dragging ? "border-primary bg-primary/5" : "border-input hover:border-muted-foreground/40 hover:bg-muted/40",
+          dragging
+            ? "border-primary bg-primary/5"
+            : "border-input hover:border-muted-foreground/40 hover:bg-muted/40",
         )}
         aria-label="Upload an image: drag and drop, paste, or click to browse"
       >
         <UploadCloud className="size-6 text-muted-foreground" aria-hidden />
-        <p className="mt-2 text-sm font-medium">Drop an image, paste from clipboard, or click to browse</p>
-        <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">JPEG · PNG · WebP · TIFF — up to 8 MB, 25 MP</p>
+        <p className="mt-2 text-sm font-medium">
+          Drop an image, paste from clipboard, or click to browse
+        </p>
+        <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+          JPEG · PNG · WebP · TIFF — up to 8 MB, 25 MP
+        </p>
       </button>
       <input
         ref={inputRef}
@@ -195,7 +207,10 @@ export function UploadZone({
         tabIndex={-1}
       />
       {error && (
-        <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive">
+        <p
+          role="alert"
+          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive"
+        >
           {error}
         </p>
       )}
