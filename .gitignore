@@ -65,7 +65,7 @@ compile_commands.json
 *.tmp
 *.swp
 *~
-/_wiki_tmp/
+/_wiki_tmp*/
 
 # Claude Code local-only state
 .claude/settings.local.json
