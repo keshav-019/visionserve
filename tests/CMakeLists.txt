@@ -17,3 +17,5 @@ visionserve_apply_sanitizers(visionserve_concurrency_tests)
 
 include(GoogleTest)
 gtest_discover_tests(visionserve_concurrency_tests)
+
+add_subdirectory(api)
