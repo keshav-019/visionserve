@@ -83,6 +83,31 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "linux-clang-asan",
+      "displayName": "Linux Clang ASan+UBSan",
+      "inherits": "linux-clang-debug",
+      "cacheVariables": {
+        "VISIONSERVE_ENABLE_ASAN": "ON",
+        "VISIONSERVE_ENABLE_UBSAN": "ON"
+      }
+    },
+    {
+      "name": "linux-clang-tsan",
+      "displayName": "Linux Clang TSan",
+      "inherits": "linux-clang-debug",
+      "cacheVariables": {
+        "VISIONSERVE_ENABLE_TSAN": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-asan",
+      "displayName": "Windows MSVC ASan",
+      "inherits": "windows-msvc-debug",
+      "cacheVariables": {
+        "VISIONSERVE_ENABLE_ASAN": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -95,6 +120,10 @@
       "configurePreset": "windows-msvc-release"
     },
     {
+      "name": "windows-msvc-asan",
+      "configurePreset": "windows-msvc-asan"
+    },
+    {
       "name": "linux-gcc-debug",
       "configurePreset": "linux-gcc-debug"
     },
@@ -105,6 +134,14 @@
     {
       "name": "linux-gcc-release",
       "configurePreset": "linux-gcc-release"
+    },
+    {
+      "name": "linux-clang-asan",
+      "configurePreset": "linux-clang-asan"
+    },
+    {
+      "name": "linux-clang-tsan",
+      "configurePreset": "linux-clang-tsan"
     }
   ],
   "testPresets": [

@@ -42,18 +42,83 @@ function(visionserve_apply_warnings target)
     endif()
 endfunction()
 
+if(VISIONSERVE_ENABLE_ASAN AND VISIONSERVE_ENABLE_TSAN)
+    message(FATAL_ERROR "VISIONSERVE_ENABLE_ASAN and VISIONSERVE_ENABLE_TSAN are mutually exclusive")
+endif()
+
+# Applies the sanitizer(s) selected via VISIONSERVE_ENABLE_{ASAN,UBSAN,TSAN} to a target.
+# MSVC only supports AddressSanitizer; UBSan/TSan require GCC or Clang.
+function(visionserve_apply_sanitizers target)
+    if(MSVC)
+        if(VISIONSERVE_ENABLE_ASAN)
+            target_compile_options(${target} PRIVATE /fsanitize=address)
+        endif()
+        if(VISIONSERVE_ENABLE_UBSAN OR VISIONSERVE_ENABLE_TSAN)
+            message(WARNING "UBSan/TSan are not supported by MSVC; ignoring for ${target}")
+        endif()
+        return()
+    endif()
+
+    set(sanitizers "")
+    if(VISIONSERVE_ENABLE_ASAN)
+        list(APPEND sanitizers "address")
+    endif()
+    if(VISIONSERVE_ENABLE_UBSAN)
+        list(APPEND sanitizers "undefined")
+    endif()
+    if(VISIONSERVE_ENABLE_TSAN)
+        list(APPEND sanitizers "thread")
+    endif()
+    if(sanitizers)
+        list(JOIN sanitizers "," sanitizer_list)
+        target_compile_options(${target} PRIVATE -fsanitize=${sanitizer_list} -fno-omit-frame-pointer -g)
+        target_link_options(${target} PRIVATE -fsanitize=${sanitizer_list})
+    endif()
+endfunction()
+
+add_library(visionserve_concurrency INTERFACE)
+
+target_include_directories(
+    visionserve_concurrency
+    INTERFACE
+        ${CMAKE_SOURCE_DIR}/include
+)
+
+target_compile_features(
+    visionserve_concurrency
+    INTERFACE
+        cxx_std_20
+)
+
+find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs)
+
 add_executable(
-    visionserve_sanity
+    visionserve_image
     apps/image_cli/main.cpp
 )
 
 target_compile_features(
-    visionserve_sanity
+    visionserve_image
     PRIVATE
         cxx_std_20
 )
 
-visionserve_apply_warnings(visionserve_sanity)
+target_link_libraries(
+    visionserve_image
+    PRIVATE
+        ${OpenCV_LIBS}
+)
+
+target_include_directories(
+    visionserve_image
+    PRIVATE
+        ${OpenCV_INCLUDE_DIRS}
+)
+
+set_target_properties(visionserve_image PROPERTIES OUTPUT_NAME "visionserve-image")
+
+visionserve_apply_warnings(visionserve_image)
+visionserve_apply_sanitizers(visionserve_image)
 
 find_package(Drogon CONFIG REQUIRED)
 
@@ -75,8 +140,11 @@ target_link_libraries(
 )
 
 visionserve_apply_warnings(visionserve_api)
+visionserve_apply_sanitizers(visionserve_api)
 
 if(VISIONSERVE_BUILD_TESTS)
     include(CTest)
     enable_testing()
+    find_package(GTest CONFIG REQUIRED)
+    add_subdirectory(tests)
 endif()
