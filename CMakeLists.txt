@@ -122,21 +122,51 @@ visionserve_apply_sanitizers(visionserve_image)
 
 find_package(Drogon CONFIG REQUIRED)
 
+# Everything the API server does except its main() — shared between the real
+# visionserve_api executable and the integration test binary (tests/api/) so
+# both drive the exact same route/advice wiring, not a reimplementation of it.
+add_library(
+    visionserve_api_core
+    STATIC
+    apps/api_server/app_setup.cpp
+    apps/api_server/error_response.cpp
+    apps/api_server/image_endpoints.cpp
+    apps/api_server/image_validation.cpp
+    apps/api_server/request_context.cpp
+)
+
+target_include_directories(
+    visionserve_api_core
+    PUBLIC
+        apps/api_server
+        ${OpenCV_INCLUDE_DIRS}
+)
+
+target_link_libraries(
+    visionserve_api_core
+    PUBLIC
+        Drogon::Drogon
+        ${OpenCV_LIBS}
+)
+
+target_compile_features(
+    visionserve_api_core
+    PUBLIC
+        cxx_std_20
+)
+
+visionserve_apply_warnings(visionserve_api_core)
+visionserve_apply_sanitizers(visionserve_api_core)
+
 add_executable(
     visionserve_api
     apps/api_server/main.cpp
 )
 
-target_compile_features(
-    visionserve_api
-    PRIVATE
-        cxx_std_20
-)
-
 target_link_libraries(
     visionserve_api
     PRIVATE
-        Drogon::Drogon
+        visionserve_api_core
 )
 
 visionserve_apply_warnings(visionserve_api)

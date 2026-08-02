@@ -1,0 +1,226 @@
+openapi: 3.0.3
+info:
+  title: VisionServe API
+  description: >
+    Phase 0-3 surface of the VisionServe backend: system health/version
+    endpoints plus the Phase 3 image utility endpoints. This is a starting
+    point (Full Roadmap Phase 3 completion criterion), not the complete API —
+    it grows alongside the roadmap (detection, jobs, batches, auth, ...).
+  version: "0.1.0"
+servers:
+  - url: http://localhost:8081
+    description: Local dev (see wiki Getting-Started)
+  - url: https://visionserve-api.up.railway.app
+    description: Railway deployment (see wiki Deployment) — actual URL varies per project
+
+paths:
+  /health:
+    get:
+      summary: Liveness probe
+      description: Returns 200 as long as the process is running.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+
+  /ready:
+    get:
+      summary: Readiness probe
+      description: >
+        Returns 200 once the process can accept inference requests. Currently
+        identical to /health; will diverge once there are subsystems (DB,
+        model registry, queue) that can be up-but-not-ready.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+
+  /version:
+    get:
+      summary: Service version and uptime
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service: { type: string, example: visionserve-api }
+                  version: { type: string, example: "0.1.0" }
+                  uptime_seconds: { type: integer, example: 42 }
+
+  /images/metadata:
+    post:
+      summary: Decode an image and report its metadata
+      requestBody:
+        $ref: "#/components/requestBodies/ImageUpload"
+      responses:
+        "200":
+          description: Decoded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  request_id: { type: string }
+                  filename: { type: string }
+                  format: { type: string, enum: [jpeg, png, bmp, webp] }
+                  width: { type: integer }
+                  height: { type: integer }
+                  channels: { type: integer }
+                  file_size_bytes: { type: integer }
+                  timing:
+                    type: object
+                    properties:
+                      decode_ms: { type: number }
+                      total_ms: { type: number }
+        "400": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+
+  /images/validate:
+    post:
+      summary: Check whether an upload is a decodable, within-limits image
+      description: >
+        Never hard-errors on a bad *image* (that's the point of the endpoint)
+        — only a malformed *request* (unparseable body, missing file,
+        oversized upload) returns a 4xx. A bad signature, failed decode, or
+        over-limit pixel count is reported as a normal 200 with valid=false.
+      requestBody:
+        $ref: "#/components/requestBodies/ImageUpload"
+      responses:
+        "200":
+          description: Always returned once the request itself is well-formed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  request_id: { type: string }
+                  valid: { type: boolean }
+                  reason:
+                    type: string
+                    nullable: true
+                    enum: [unsupported_format, decode_failed, pixel_limit_exceeded, null]
+                  format: { type: string }
+                  width: { type: integer }
+                  height: { type: integer }
+                  timing:
+                    type: object
+                    properties:
+                      decode_ms: { type: number }
+        "400": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+
+  /images/resize:
+    post:
+      summary: Resize an image and return the result
+      description: >
+        Returns the processed image bytes directly (not JSON). At least one
+        of width/height is required; the other is derived to preserve aspect
+        ratio if omitted.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+                width: { type: integer }
+                height: { type: integer }
+                format: { type: string, enum: [jpg, jpeg, png], default: jpg }
+              required: [file]
+      responses:
+        "200":
+          description: Resized image
+          content:
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/png: { schema: { type: string, format: binary } }
+          headers:
+            X-Request-Id: { schema: { type: string } }
+            X-Output-Width: { schema: { type: integer } }
+            X-Output-Height: { schema: { type: integer } }
+            X-Decode-Time-Ms: { schema: { type: number } }
+            X-Resize-Time-Ms: { schema: { type: number } }
+            X-Encode-Time-Ms: { schema: { type: number } }
+        "400": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+
+  /images/grayscale:
+    post:
+      summary: Convert an image to grayscale and return the result
+      description: Returns the processed image bytes directly (not JSON).
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+                format: { type: string, enum: [jpg, jpeg, png], default: jpg }
+              required: [file]
+      responses:
+        "200":
+          description: Grayscale image
+          content:
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/png: { schema: { type: string, format: binary } }
+          headers:
+            X-Request-Id: { schema: { type: string } }
+            X-Output-Width: { schema: { type: integer } }
+            X-Output-Height: { schema: { type: integer } }
+            X-Decode-Time-Ms: { schema: { type: number } }
+            X-Convert-Time-Ms: { schema: { type: number } }
+            X-Encode-Time-Ms: { schema: { type: number } }
+        "400": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+
+components:
+  requestBodies:
+    ImageUpload:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              file: { type: string, format: binary }
+            required: [file]
+
+  responses:
+    Error:
+      description: >
+        Structured error — see wiki Backend § Error schema. code is one of
+        INVALID_REQUEST, MISSING_FILE, UNSUPPORTED_MEDIA_TYPE, FILE_TOO_LARGE,
+        PIXEL_LIMIT_EXCEEDED, INVALID_IMAGE, INTERNAL_ERROR.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    StatusResponse:
+      type: object
+      properties:
+        status: { type: string }
+        service: { type: string }
+        version: { type: string }
+
+    ErrorResponse:
+      type: object
+      properties:
+        request_id: { type: string }
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details: { type: object }
