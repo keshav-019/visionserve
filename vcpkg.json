@@ -4,6 +4,15 @@
   "version-semver": "0.1.0",
   "description": "Production-oriented computer vision inference platform",
   "dependencies": [
-    "drogon"
+    "drogon",
+    "gtest",
+    {
+      "name": "opencv4",
+      "default-features": false,
+      "features": [
+        "jpeg",
+        "png"
+      ]
+    }
   ]
 }
