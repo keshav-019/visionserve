@@ -90,29 +90,148 @@ target_compile_features(
         cxx_std_20
 )
 
+# Header-only: Stopwatch. No .cpp, so INTERFACE like visionserve_concurrency.
+add_library(visionserve_common INTERFACE)
+
+target_include_directories(
+    visionserve_common
+    INTERFACE
+        ${CMAKE_SOURCE_DIR}/include
+)
+
+target_compile_features(
+    visionserve_common
+    INTERFACE
+        cxx_std_20
+)
+
+# Protocol-agnostic error taxonomy (ErrorCode). No dependency on Drogon or any
+# other transport — see include/visionserve/errors/error_code.hpp.
+add_library(
+    visionserve_errors
+    STATIC
+    src/errors/error_code.cpp
+)
+
+target_include_directories(
+    visionserve_errors
+    PUBLIC
+        ${CMAKE_SOURCE_DIR}/include
+)
+
+target_compile_features(
+    visionserve_errors
+    PUBLIC
+        cxx_std_20
+)
+
+visionserve_apply_warnings(visionserve_errors)
+visionserve_apply_sanitizers(visionserve_errors)
+
+# Typed environment-variable helpers (config::getEnvOr / getEnvListOr).
+add_library(
+    visionserve_config
+    STATIC
+    src/config/env.cpp
+)
+
+target_include_directories(
+    visionserve_config
+    PUBLIC
+        ${CMAKE_SOURCE_DIR}/include
+)
+
+target_compile_features(
+    visionserve_config
+    PUBLIC
+        cxx_std_20
+)
+
+visionserve_apply_warnings(visionserve_config)
+visionserve_apply_sanitizers(visionserve_config)
+
 find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs)
+
+# Shared image decode/resize/grayscale/format-detection logic — the single
+# source of truth used by both visionserve-image (CLI) and visionserve_api
+# (HTTP), replacing what used to be independently duplicated (and, for
+# grayscale, actually divergent) implementations in each.
+add_library(
+    visionserve_imaging
+    STATIC
+    src/imaging/decode.cpp
+    src/imaging/format.cpp
+    src/imaging/grayscale.cpp
+    src/imaging/resize.cpp
+)
+
+target_include_directories(
+    visionserve_imaging
+    PUBLIC
+        ${CMAKE_SOURCE_DIR}/include
+        ${OpenCV_INCLUDE_DIRS}
+)
+
+target_link_libraries(
+    visionserve_imaging
+    PUBLIC
+        ${OpenCV_LIBS}
+)
+
+target_compile_features(
+    visionserve_imaging
+    PUBLIC
+        cxx_std_20
+)
+
+visionserve_apply_warnings(visionserve_imaging)
+visionserve_apply_sanitizers(visionserve_imaging)
+
+find_package(spdlog CONFIG REQUIRED)
+find_package(jsoncpp CONFIG REQUIRED)
+
+# Structured JSON request logging (spdlog-backed) — see
+# include/visionserve/telemetry/logger.hpp.
+add_library(
+    visionserve_telemetry
+    STATIC
+    src/telemetry/logger.cpp
+)
+
+target_include_directories(
+    visionserve_telemetry
+    PUBLIC
+        ${CMAKE_SOURCE_DIR}/include
+)
+
+target_link_libraries(
+    visionserve_telemetry
+    PUBLIC
+        spdlog::spdlog
+        JsonCpp::JsonCpp
+    PRIVATE
+        visionserve_config
+)
+
+target_compile_features(
+    visionserve_telemetry
+    PUBLIC
+        cxx_std_20
+)
+
+visionserve_apply_warnings(visionserve_telemetry)
+visionserve_apply_sanitizers(visionserve_telemetry)
 
 add_executable(
     visionserve_image
     apps/image_cli/main.cpp
 )
 
-target_compile_features(
-    visionserve_image
-    PRIVATE
-        cxx_std_20
-)
-
 target_link_libraries(
     visionserve_image
     PRIVATE
-        ${OpenCV_LIBS}
-)
-
-target_include_directories(
-    visionserve_image
-    PRIVATE
-        ${OpenCV_INCLUDE_DIRS}
+        visionserve_common
+        visionserve_imaging
 )
 
 set_target_properties(visionserve_image PROPERTIES OUTPUT_NAME "visionserve-image")
@@ -131,22 +250,25 @@ add_library(
     apps/api_server/app_setup.cpp
     apps/api_server/error_response.cpp
     apps/api_server/image_endpoints.cpp
-    apps/api_server/image_validation.cpp
     apps/api_server/request_context.cpp
+    apps/api_server/upload_limits.cpp
 )
 
 target_include_directories(
     visionserve_api_core
     PUBLIC
         apps/api_server
-        ${OpenCV_INCLUDE_DIRS}
 )
 
 target_link_libraries(
     visionserve_api_core
     PUBLIC
         Drogon::Drogon
-        ${OpenCV_LIBS}
+        visionserve_common
+        visionserve_config
+        visionserve_errors
+        visionserve_imaging
+        visionserve_telemetry
 )
 
 target_compile_features(

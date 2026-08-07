@@ -6,6 +6,7 @@
   "dependencies": [
     "drogon",
     "gtest",
+    "spdlog",
     {
       "name": "opencv4",
       "default-features": false,

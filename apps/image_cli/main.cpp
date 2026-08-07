@@ -1,19 +1,24 @@
-#include <chrono>
-#include <cmath>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
 #include <optional>
 #include <span>
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include "visionserve/common/timing.hpp"
+#include "visionserve/imaging/decode.hpp"
+#include "visionserve/imaging/grayscale.hpp"
+#include "visionserve/imaging/resize.hpp"
+
 namespace {
 
 namespace fs = std::filesystem;
+using visionserve::common::Stopwatch;
 
 constexpr std::string_view kUsage =
     "visionserve-image \xe2\x80\x94 VisionServe image utilities\n"
@@ -29,21 +34,6 @@ void printError(std::string_view message) {
     std::cerr << "error: " << message << '\n';
 }
 
-// Measures elapsed wall-clock time for a single processing stage, in milliseconds.
-class Stopwatch {
-   public:
-    void restart() {
-        start_ = std::chrono::steady_clock::now();
-    }
-    double elapsedMs() const {
-        return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start_)
-            .count();
-    }
-
-   private:
-    std::chrono::steady_clock::time_point start_{std::chrono::steady_clock::now()};
-};
-
 std::optional<std::string> findOption(std::span<const std::string> args, std::string_view name) {
     for (std::size_t i = 0; i + 1 < args.size(); ++i) {
         if (args[i] == name) {
@@ -51,6 +41,17 @@ std::optional<std::string> findOption(std::span<const std::string> args, std::st
         }
     }
     return std::nullopt;
+}
+
+// Reads a whole file into memory so the CLI can go through the same
+// bytes-in decode path (visionserve::imaging::decode) as the HTTP endpoints,
+// rather than a separate cv::imread(path)-based one.
+std::optional<std::string> readFile(const std::string& path) {
+    std::ifstream file{path, std::ios::binary};
+    if (!file) {
+        return std::nullopt;
+    }
+    return std::string{std::istreambuf_iterator<char>{file}, std::istreambuf_iterator<char>{}};
 }
 
 int runMetadata(std::span<const std::string> args) {
@@ -64,8 +65,14 @@ int runMetadata(std::span<const std::string> args) {
         return 1;
     }
 
+    const auto bytes = readFile(path);
+    if (!bytes) {
+        printError("could not read file: " + path);
+        return 1;
+    }
+
     Stopwatch stopwatch;
-    const cv::Mat image = cv::imread(path, cv::IMREAD_UNCHANGED);
+    const cv::Mat image = visionserve::imaging::decode(*bytes);
     const double decodeMs = stopwatch.elapsedMs();
 
     if (image.empty()) {
@@ -98,8 +105,15 @@ int runValidate(std::span<const std::string> args) {
         return 1;
     }
 
+    const auto bytes = readFile(path);
+    if (!bytes) {
+        std::cout << "valid: false\n";
+        printError("could not read file: " + path);
+        return 1;
+    }
+
     Stopwatch stopwatch;
-    const cv::Mat image = cv::imread(path, cv::IMREAD_UNCHANGED);
+    const cv::Mat image = visionserve::imaging::decode(*bytes);
     const double decodeMs = stopwatch.elapsedMs();
     const bool valid = !image.empty();
 
@@ -140,41 +154,43 @@ int runResize(std::span<const std::string> args) {
         return 1;
     }
 
+    const auto bytes = readFile(inputPath);
+    if (!bytes) {
+        printError("could not read file: " + inputPath);
+        return 1;
+    }
+
     Stopwatch stopwatch;
-    const cv::Mat image = cv::imread(inputPath, cv::IMREAD_UNCHANGED);
+    const cv::Mat image = visionserve::imaging::decode(*bytes);
     if (image.empty()) {
         printError("could not decode image: " + inputPath);
         return 1;
     }
     const double decodeMs = stopwatch.elapsedMs();
 
-    int targetWidth = image.cols;
-    int targetHeight = image.rows;
+    std::optional<int> targetWidth;
+    std::optional<int> targetHeight;
     try {
-        if (widthOpt && heightOpt) {
+        if (widthOpt) {
             targetWidth = std::stoi(*widthOpt);
+        }
+        if (heightOpt) {
             targetHeight = std::stoi(*heightOpt);
-        } else if (widthOpt) {
-            targetWidth = std::stoi(*widthOpt);
-            targetHeight = static_cast<int>(
-                std::llround(static_cast<double>(image.rows) * targetWidth / image.cols));
-        } else {
-            targetHeight = std::stoi(*heightOpt);
-            targetWidth = static_cast<int>(
-                std::llround(static_cast<double>(image.cols) * targetHeight / image.rows));
         }
     } catch (const std::exception&) {
         printError("--width/--height must be positive integers");
         return 1;
     }
-    if (targetWidth <= 0 || targetHeight <= 0) {
+
+    const auto target = visionserve::imaging::computeResizeDimensions({image.cols, image.rows},
+                                                                      targetWidth, targetHeight);
+    if (!target) {
         printError("--width/--height must be positive integers");
         return 1;
     }
 
     stopwatch.restart();
-    cv::Mat resized;
-    cv::resize(image, resized, cv::Size(targetWidth, targetHeight), 0, 0, cv::INTER_AREA);
+    const cv::Mat resized = visionserve::imaging::resize(image, *target);
     const double resizeMs = stopwatch.elapsedMs();
 
     stopwatch.restart();
@@ -185,8 +201,8 @@ int runResize(std::span<const std::string> args) {
     const double encodeMs = stopwatch.elapsedMs();
 
     std::cout << "output: " << outputPath << '\n'
-              << "width: " << targetWidth << '\n'
-              << "height: " << targetHeight << '\n'
+              << "width: " << target->width << '\n'
+              << "height: " << target->height << '\n'
               << "decode_time_ms: " << decodeMs << '\n'
               << "resize_time_ms: " << resizeMs << '\n'
               << "encode_time_ms: " << encodeMs << '\n';
@@ -206,8 +222,14 @@ int runGrayscale(std::span<const std::string> args) {
         return 1;
     }
 
+    const auto bytes = readFile(inputPath);
+    if (!bytes) {
+        printError("could not read file: " + inputPath);
+        return 1;
+    }
+
     Stopwatch stopwatch;
-    const cv::Mat image = cv::imread(inputPath, cv::IMREAD_COLOR);
+    const cv::Mat image = visionserve::imaging::decode(*bytes);
     if (image.empty()) {
         printError("could not decode image: " + inputPath);
         return 1;
@@ -215,8 +237,7 @@ int runGrayscale(std::span<const std::string> args) {
     const double decodeMs = stopwatch.elapsedMs();
 
     stopwatch.restart();
-    cv::Mat gray;
-    cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+    const cv::Mat gray = visionserve::imaging::toGrayscale(image);
     const double convertMs = stopwatch.elapsedMs();
 
     stopwatch.restart();

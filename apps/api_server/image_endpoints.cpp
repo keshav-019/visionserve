@@ -3,20 +3,21 @@
 #include <drogon/HttpAppFramework.h>
 #include <drogon/MultiPart.h>
 
-#include <cmath>
-#include <cstdint>
 #include <functional>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "error_response.hpp"
-#include "image_validation.hpp"
 #include "request_context.hpp"
-#include "timing.hpp"
+#include "upload_limits.hpp"
+#include "visionserve/common/timing.hpp"
+#include "visionserve/imaging/decode.hpp"
+#include "visionserve/imaging/format.hpp"
+#include "visionserve/imaging/grayscale.hpp"
+#include "visionserve/imaging/resize.hpp"
 
 namespace visionserve::api {
 namespace {
@@ -24,6 +25,8 @@ namespace {
 using drogon::HttpRequestPtr;
 using drogon::HttpResponsePtr;
 using ResponseCallback = std::function<void(const HttpResponsePtr&)>;
+using common::Stopwatch;
+using errors::ErrorCode;
 
 struct UploadedImage {
     std::string_view content;
@@ -61,7 +64,7 @@ std::optional<UploadedImage> extractUploadedImage(const HttpRequestPtr& req,
     }
 
     const auto content = file.fileContent();
-    const auto format = detectImageFormat(content);
+    const auto format = imaging::detectFormat(content);
     if (!format) {
         callback(makeErrorResponse(requestId, drogon::k415UnsupportedMediaType,
                                    ErrorCode::UnsupportedMediaType,
@@ -83,8 +86,7 @@ std::optional<DecodedImage> decodeUploadedImage(const UploadedImage& uploaded,
                                                 const std::string& requestId,
                                                 const ResponseCallback& callback) {
     Stopwatch watch;
-    std::vector<uchar> buffer(uploaded.content.begin(), uploaded.content.end());
-    cv::Mat image = cv::imdecode(buffer, cv::IMREAD_UNCHANGED);
+    cv::Mat image = imaging::decode(uploaded.content);
     const double decodeMs = watch.elapsedMs();
 
     if (image.empty()) {
@@ -202,7 +204,7 @@ void handleValidate(const HttpRequestPtr& req, ResponseCallback&& callback) {
     body["request_id"] = requestId;
 
     const auto content = file.fileContent();
-    const auto format = detectImageFormat(content);
+    const auto format = imaging::detectFormat(content);
     if (!format) {
         body["valid"] = false;
         body["reason"] = "unsupported_format";
@@ -211,8 +213,7 @@ void handleValidate(const HttpRequestPtr& req, ResponseCallback&& callback) {
     }
 
     Stopwatch decodeWatch;
-    std::vector<uchar> buffer(content.begin(), content.end());
-    cv::Mat image = cv::imdecode(buffer, cv::IMREAD_UNCHANGED);
+    cv::Mat image = imaging::decode(content);
     body["timing"]["decode_ms"] = decodeWatch.elapsedMs();
 
     if (image.empty()) {
@@ -265,29 +266,16 @@ void handleResize(const HttpRequestPtr& req, ResponseCallback&& callback) {
         return;
     }
 
-    int targetWidth = decoded->mat.cols;
-    int targetHeight = decoded->mat.rows;
-    if (widthParam && heightParam) {
-        targetWidth = *widthParam;
-        targetHeight = *heightParam;
-    } else if (widthParam) {
-        targetWidth = *widthParam;
-        targetHeight = static_cast<int>(
-            std::llround(static_cast<double>(decoded->mat.rows) * targetWidth / decoded->mat.cols));
-    } else {
-        targetHeight = *heightParam;
-        targetWidth = static_cast<int>(std::llround(static_cast<double>(decoded->mat.cols) *
-                                                    targetHeight / decoded->mat.rows));
-    }
-    if (targetWidth <= 0 || targetHeight <= 0) {
+    const auto target = imaging::computeResizeDimensions({decoded->mat.cols, decoded->mat.rows},
+                                                         widthParam, heightParam);
+    if (!target) {
         callback(makeErrorResponse(requestId, drogon::k400BadRequest, ErrorCode::InvalidRequest,
                                    "width/height must be positive integers"));
         return;
     }
 
     Stopwatch resizeWatch;
-    cv::Mat resized;
-    cv::resize(decoded->mat, resized, cv::Size(targetWidth, targetHeight), 0, 0, cv::INTER_AREA);
+    const cv::Mat resized = imaging::resize(decoded->mat, *target);
     const double resizeMs = resizeWatch.elapsedMs();
 
     respondWithImage(callback, resized, *outputFormat, decoded->decodeMs, "X-Resize-Time-Ms",
@@ -312,18 +300,7 @@ void handleGrayscale(const HttpRequestPtr& req, ResponseCallback&& callback) {
     }
 
     Stopwatch convertWatch;
-    cv::Mat gray;
-    switch (decoded->mat.channels()) {
-        case 1:
-            gray = decoded->mat;
-            break;
-        case 4:
-            cv::cvtColor(decoded->mat, gray, cv::COLOR_BGRA2GRAY);
-            break;
-        default:
-            cv::cvtColor(decoded->mat, gray, cv::COLOR_BGR2GRAY);
-            break;
-    }
+    const cv::Mat gray = imaging::toGrayscale(decoded->mat);
     const double convertMs = convertWatch.elapsedMs();
 
     respondWithImage(callback, gray, *outputFormat, decoded->decodeMs, "X-Convert-Time-Ms",
