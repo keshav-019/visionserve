@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-namespace visionserve::api {
+namespace visionserve::common {
 
 // Measures elapsed wall-clock time for a single processing stage, in milliseconds.
 class Stopwatch {
@@ -19,4 +19,4 @@ class Stopwatch {
     std::chrono::steady_clock::time_point start_{std::chrono::steady_clock::now()};
 };
 
-}  // namespace visionserve::api
+}  // namespace visionserve::common

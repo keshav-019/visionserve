@@ -5,16 +5,17 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cstdlib>
 #include <optional>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "image_endpoints.hpp"
-#include "image_validation.hpp"
 #include "request_context.hpp"
+#include "upload_limits.hpp"
+#include "visionserve/common/timing.hpp"
+#include "visionserve/config/env.hpp"
+#include "visionserve/telemetry/logger.hpp"
 
 namespace visionserve::api {
 namespace {
@@ -36,25 +37,9 @@ Json::Value makeStatusBody(std::string_view status) {
 // "https://visionserve.vercel.app,http://localhost:8080". Defaults to "*" (open) so the
 // local dev server and preview deployments work out of the box; tighten this in production
 // via the VISIONSERVE_CORS_ORIGINS environment variable (see Phase 21 security hardening).
-std::vector<std::string> corsAllowedOrigins() {
-    const char *originsEnv = std::getenv("VISIONSERVE_CORS_ORIGINS");
-    if (originsEnv == nullptr || std::string_view{originsEnv}.empty()) {
-        return {"*"};
-    }
-
-    std::vector<std::string> origins;
-    std::stringstream stream{originsEnv};
-    std::string origin;
-    while (std::getline(stream, origin, ',')) {
-        if (!origin.empty()) {
-            origins.push_back(origin);
-        }
-    }
-    return origins.empty() ? std::vector<std::string>{"*"} : origins;
-}
-
 const std::vector<std::string> &allowedOrigins() {
-    static const std::vector<std::string> origins = corsAllowedOrigins();
+    static const std::vector<std::string> origins =
+        config::getEnvListOr("VISIONSERVE_CORS_ORIGINS", {"*"});
     return origins;
 }
 
@@ -123,6 +108,25 @@ void registerRequestId() {
         });
 }
 
+// Stashes the request's arrival time in a pre-routing advice, then emits one
+// structured JSON log line per completed request via visionserve::telemetry.
+constexpr std::string_view kRequestStartAttribute = "visionserve_request_start";
+
+void registerRequestLogging() {
+    drogon::app().registerPreRoutingAdvice([](const drogon::HttpRequestPtr &req) {
+        req->attributes()->insert(std::string{kRequestStartAttribute}, common::Stopwatch{});
+    });
+
+    drogon::app().registerPostHandlingAdvice(
+        [](const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp) {
+            const auto &stopwatch =
+                req->attributes()->get<common::Stopwatch>(std::string{kRequestStartAttribute});
+            telemetry::logRequest(req->methodString(), req->path(),
+                                  static_cast<int>(resp->statusCode()), requestIdFor(req),
+                                  stopwatch.elapsedMs());
+        });
+}
+
 void registerSystemEndpoints() {
     // GET /health — liveness: process is running.
     drogon::app().registerHandler(
@@ -166,7 +170,10 @@ void registerSystemEndpoints() {
 }  // namespace
 
 void configureVisionServeApp() {
+    telemetry::initLogger();
+
     registerRequestId();
+    registerRequestLogging();
     registerCors();
     registerSystemEndpoints();
     registerImageEndpoints();
