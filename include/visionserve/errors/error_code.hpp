@@ -16,6 +16,8 @@ enum class ErrorCode {
     FileTooLarge,          // upload exceeds the configured per-file limit
     PixelLimitExceeded,    // decoded image exceeds the configured pixel-count limit
     InvalidImage,          // file signature or OpenCV decode failed
+    ModelNotReady,         // the requested model failed to load or hasn't finished loading
+    InferenceFailed,       // the model loaded, but a run against it threw/failed
     InternalError,         // anything unexpected; never crash the process
 };
 

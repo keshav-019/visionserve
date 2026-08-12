@@ -6,7 +6,7 @@ A production-oriented computer vision inference platform: a modern C++ backend (
 
 ## What's here today
 
-- `visionserve_sanity` / `visionserve_api` — the C++ backend (CMake + vcpkg, builds on Windows MSVC and Linux GCC/Clang). `visionserve_api` is a Drogon HTTP server with `/health`, `/ready`, `/version`, and CORS.
+- `visionserve_sanity` / `visionserve_api` — the C++ backend (CMake + vcpkg, builds on Windows MSVC and Linux GCC/Clang). `visionserve_api` is a Drogon HTTP server with `/health`, `/ready`, `/version`, CORS, image utility endpoints, and `POST /v1/detect` (real ONNX Runtime object detection).
 - `web/` — the operator dashboard (TanStack Start / React), fully click-through on mock data.
 - `Dockerfile` + `railway.json` — backend container, deployable to Railway.
 - `web/vite.config.ts` (nitro `vercel` preset) — frontend deployable to Vercel.

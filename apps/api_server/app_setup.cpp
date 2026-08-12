@@ -10,7 +10,10 @@
 #include <string_view>
 #include <vector>
 
+#include "detect_endpoint.hpp"
+#include "detector_instance.hpp"
 #include "image_endpoints.hpp"
+#include "model_config.hpp"
 #include "request_context.hpp"
 #include "upload_limits.hpp"
 #include "visionserve/common/timing.hpp"
@@ -138,13 +141,22 @@ void registerSystemEndpoints() {
         },
         {drogon::Get});
 
-    // GET /ready — readiness: process can accept inference requests.
-    // No model/queue subsystems exist yet, so readiness mirrors liveness for now.
+    // GET /ready — readiness: process can accept inference requests. Now
+    // that the detector (Phase 4) is a real subsystem that can be up but
+    // not ready (model still loading, or failed to load), this diverges
+    // from /health instead of mirroring it.
     drogon::app().registerHandler(
         "/ready",
         [](const drogon::HttpRequestPtr &,
            std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
-            auto resp = drogon::HttpResponse::newHttpJsonResponse(makeStatusBody("ready"));
+            const bool ready = detectorInstance().isReady();
+            auto body = makeStatusBody(ready ? "ready" : "not_ready");
+            body["detector"]["ready"] = ready;
+            if (!ready) {
+                body["detector"]["error"] = std::string{detectorInstance().loadError()};
+            }
+            auto resp = drogon::HttpResponse::newHttpJsonResponse(body);
+            resp->setStatusCode(ready ? drogon::k200OK : drogon::k503ServiceUnavailable);
             callback(resp);
         },
         {drogon::Get});
@@ -172,11 +184,19 @@ void registerSystemEndpoints() {
 void configureVisionServeApp() {
     telemetry::initLogger();
 
+    // Forces the model load now (Detector's constructor runs on first
+    // access to the Meyer's singleton in detectorInstance()) rather than
+    // lazily on the first /v1/detect request, so GET /ready reflects the
+    // real outcome immediately after startup.
+    const auto &detector = detectorInstance();
+    telemetry::logModelLoad(modelPath(), detector.isReady(), detector.loadError());
+
     registerRequestId();
     registerRequestLogging();
     registerCors();
     registerSystemEndpoints();
     registerImageEndpoints();
+    registerDetectEndpoint();
 
     // A little above the per-file limit (maxUploadBytes(), 10 MiB by default) to leave
     // room for multipart boundaries/headers/form fields around the file.

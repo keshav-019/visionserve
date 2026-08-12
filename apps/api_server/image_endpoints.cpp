@@ -12,7 +12,9 @@
 
 #include "error_response.hpp"
 #include "request_context.hpp"
+#include "safe_handler.hpp"
 #include "upload_limits.hpp"
+#include "upload_pipeline.hpp"
 #include "visionserve/common/timing.hpp"
 #include "visionserve/imaging/decode.hpp"
 #include "visionserve/imaging/format.hpp"
@@ -24,87 +26,8 @@ namespace {
 
 using drogon::HttpRequestPtr;
 using drogon::HttpResponsePtr;
-using ResponseCallback = std::function<void(const HttpResponsePtr&)>;
 using common::Stopwatch;
 using errors::ErrorCode;
-
-struct UploadedImage {
-    std::string_view content;
-    std::string filename;
-    std::string_view format;
-};
-
-// Shared across all four endpoints: parses the multipart body, extracts the
-// first file part, and rejects malformed/missing/oversized/unrecognized
-// uploads with a structured error. Returns nullopt after already invoking
-// `callback` with that error; the caller should return immediately in that
-// case.
-std::optional<UploadedImage> extractUploadedImage(const HttpRequestPtr& req,
-                                                  drogon::MultiPartParser& parser,
-                                                  const std::string& requestId,
-                                                  const ResponseCallback& callback) {
-    if (parser.parse(req) != 0) {
-        callback(makeErrorResponse(requestId, drogon::k400BadRequest, ErrorCode::InvalidRequest,
-                                   "could not parse multipart/form-data body"));
-        return std::nullopt;
-    }
-    const auto& files = parser.getFiles();
-    if (files.empty()) {
-        callback(makeErrorResponse(requestId, drogon::k400BadRequest, ErrorCode::MissingFile,
-                                   "expected a file part named 'file'"));
-        return std::nullopt;
-    }
-    const auto& file = files.front();
-    if (file.fileLength() > maxUploadBytes()) {
-        callback(makeErrorResponse(requestId, drogon::k413RequestEntityTooLarge,
-                                   ErrorCode::FileTooLarge,
-                                   "uploaded file exceeds the maximum allowed size (" +
-                                       std::to_string(maxUploadBytes()) + " bytes)"));
-        return std::nullopt;
-    }
-
-    const auto content = file.fileContent();
-    const auto format = imaging::detectFormat(content);
-    if (!format) {
-        callback(makeErrorResponse(requestId, drogon::k415UnsupportedMediaType,
-                                   ErrorCode::UnsupportedMediaType,
-                                   "file is not a recognized image format (jpeg, png, bmp, webp)"));
-        return std::nullopt;
-    }
-    return UploadedImage{content, file.getFileName(), *format};
-}
-
-struct DecodedImage {
-    cv::Mat mat;
-    double decodeMs;
-};
-
-// Decodes the uploaded bytes and enforces the pixel-count limit. Like
-// extractUploadedImage(), returns nullopt after already responding with a
-// structured error.
-std::optional<DecodedImage> decodeUploadedImage(const UploadedImage& uploaded,
-                                                const std::string& requestId,
-                                                const ResponseCallback& callback) {
-    Stopwatch watch;
-    cv::Mat image = imaging::decode(uploaded.content);
-    const double decodeMs = watch.elapsedMs();
-
-    if (image.empty()) {
-        callback(makeErrorResponse(requestId, drogon::k400BadRequest, ErrorCode::InvalidImage,
-                                   "could not decode image"));
-        return std::nullopt;
-    }
-
-    const auto pixelCount =
-        static_cast<std::uint64_t>(image.cols) * static_cast<std::uint64_t>(image.rows);
-    if (pixelCount > maxImagePixels()) {
-        callback(makeErrorResponse(requestId, drogon::k400BadRequest, ErrorCode::PixelLimitExceeded,
-                                   "decoded image exceeds the maximum allowed pixel count (" +
-                                       std::to_string(maxImagePixels()) + ")"));
-        return std::nullopt;
-    }
-    return DecodedImage{std::move(image), decodeMs};
-}
 
 std::optional<std::string> parseOutputFormat(drogon::MultiPartParser& parser,
                                              const std::string& requestId,
@@ -305,29 +228,6 @@ void handleGrayscale(const HttpRequestPtr& req, ResponseCallback&& callback) {
 
     respondWithImage(callback, gray, *outputFormat, decoded->decodeMs, "X-Convert-Time-Ms",
                      convertMs);
-}
-
-// Wraps a handler so an unexpected exception (e.g. OpenCV throwing on a
-// pathological-but-signature-valid input) becomes our structured 500 instead
-// of crashing the process or falling through to Drogon's default error page.
-// `callback` is copied (not moved) into the try block so it's still valid and
-// callable from the catch blocks.
-using Handler = std::function<void(const HttpRequestPtr&, ResponseCallback&&)>;
-
-Handler makeSafe(Handler handler) {
-    return [handler = std::move(handler)](const HttpRequestPtr& req, ResponseCallback&& callback) {
-        const auto requestId = requestIdFor(req);
-        try {
-            handler(req, ResponseCallback{callback});
-        } catch (const std::exception& e) {
-            callback(makeErrorResponse(requestId, drogon::k500InternalServerError,
-                                       ErrorCode::InternalError,
-                                       std::string{"unexpected error: "} + e.what()));
-        } catch (...) {
-            callback(makeErrorResponse(requestId, drogon::k500InternalServerError,
-                                       ErrorCode::InternalError, "unexpected error"));
-        }
-    };
 }
 
 }  // namespace

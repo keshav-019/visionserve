@@ -187,6 +187,46 @@ target_compile_features(
 visionserve_apply_warnings(visionserve_imaging)
 visionserve_apply_sanitizers(visionserve_imaging)
 
+include(cmake/onnxruntime.cmake)
+include(cmake/models.cmake)
+
+# Preprocessing (image -> tensor), postprocessing (tensor -> detections), NMS,
+# and the ONNX Runtime session wrapper for the tiny-yolov2 detector (Phase 4).
+# Preprocess/postprocess/NMS are pure functions with no ONNX Runtime
+# dependency of their own, so they're unit-tested directly; Detector is the
+# only piece that touches onnxruntime::onnxruntime.
+add_library(
+    visionserve_inference
+    STATIC
+    src/inference/detector.cpp
+    src/inference/nms.cpp
+    src/inference/postprocess.cpp
+    src/inference/preprocess.cpp
+)
+
+target_include_directories(
+    visionserve_inference
+    PUBLIC
+        ${CMAKE_SOURCE_DIR}/include
+)
+
+target_link_libraries(
+    visionserve_inference
+    PUBLIC
+        visionserve_common
+        visionserve_imaging
+        onnxruntime::onnxruntime
+)
+
+target_compile_features(
+    visionserve_inference
+    PUBLIC
+        cxx_std_20
+)
+
+visionserve_apply_warnings(visionserve_inference)
+visionserve_apply_sanitizers(visionserve_inference)
+
 find_package(spdlog CONFIG REQUIRED)
 find_package(jsoncpp CONFIG REQUIRED)
 
@@ -248,10 +288,14 @@ add_library(
     visionserve_api_core
     STATIC
     apps/api_server/app_setup.cpp
+    apps/api_server/detect_endpoint.cpp
+    apps/api_server/detector_instance.cpp
     apps/api_server/error_response.cpp
     apps/api_server/image_endpoints.cpp
+    apps/api_server/model_config.cpp
     apps/api_server/request_context.cpp
     apps/api_server/upload_limits.cpp
+    apps/api_server/upload_pipeline.cpp
 )
 
 target_include_directories(
@@ -268,6 +312,7 @@ target_link_libraries(
         visionserve_config
         visionserve_errors
         visionserve_imaging
+        visionserve_inference
         visionserve_telemetry
 )
 
@@ -293,6 +338,7 @@ target_link_libraries(
 
 visionserve_apply_warnings(visionserve_api)
 visionserve_apply_sanitizers(visionserve_api)
+visionserve_copy_onnxruntime_runtime(visionserve_api)
 
 if(VISIONSERVE_BUILD_TESTS)
     include(CTest)

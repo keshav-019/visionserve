@@ -18,4 +18,11 @@ void initLogger();
 void logRequest(std::string_view method, std::string_view path, int statusCode,
                 std::string_view requestId, double durationMs);
 
+// Emits one structured JSON log line reporting whether a model finished
+// loading, e.g.:
+//   {"level":"info","event":"model_load","model_path":"models/tinyyolov2-8.onnx",
+//    "success":true,"error":""}
+// Logged at "info" on success, "error" on failure.
+void logModelLoad(std::string_view modelPath, bool success, std::string_view error);
+
 }  // namespace visionserve::telemetry

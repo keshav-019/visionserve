@@ -2,10 +2,10 @@ openapi: 3.0.3
 info:
   title: VisionServe API
   description: >
-    Phase 0-3 surface of the VisionServe backend: system health/version
-    endpoints plus the Phase 3 image utility endpoints. This is a starting
-    point (Full Roadmap Phase 3 completion criterion), not the complete API —
-    it grows alongside the roadmap (detection, jobs, batches, auth, ...).
+    Phase 0-4 surface of the VisionServe backend: system health/version
+    endpoints, the Phase 3 image utility endpoints, and the Phase 4 object
+    detection endpoint. This is a starting point, not the complete API — it
+    grows alongside the roadmap (jobs, batches, auth, ...).
   version: "0.1.0"
 servers:
   - url: http://localhost:8081
@@ -30,12 +30,17 @@ paths:
     get:
       summary: Readiness probe
       description: >
-        Returns 200 once the process can accept inference requests. Currently
-        identical to /health; will diverge once there are subsystems (DB,
-        model registry, queue) that can be up-but-not-ready.
+        Returns 200 once the process can accept inference requests, 503 if
+        the detection model failed to load (or hasn't finished loading).
       responses:
         "200":
-          description: OK
+          description: Ready — the detector loaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "503":
+          description: Not ready — see body.detector.error for why
           content:
             application/json:
               schema:
@@ -184,6 +189,60 @@ paths:
         "413": { $ref: "#/components/responses/Error" }
         "415": { $ref: "#/components/responses/Error" }
 
+  /v1/detect:
+    post:
+      summary: Run object detection on an uploaded image
+      description: >
+        Runs the tiny-yolov2 detector (Pascal VOC's 20 classes) and returns
+        detected bounding boxes. 503 if the model isn't ready (see /ready).
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+                confidence_threshold:
+                  type: number
+                  default: 0.5
+                  description: Clamped to [0, 1].
+                iou_threshold:
+                  type: number
+                  default: 0.45
+                  description: Non-max-suppression IoU threshold, clamped to [0, 1].
+                max_detections: { type: integer, default: 100 }
+                include_timing:
+                  type: integer
+                  default: 1
+                  description: 0 omits the timing block from the response.
+              required: [file]
+      responses:
+        "200":
+          description: Detection completed (possibly with zero detections)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  request_id: { type: string }
+                  model: { type: string, example: tiny-yolov2 }
+                  version: { type: string, example: opset8 }
+                  detections:
+                    type: array
+                    items: { $ref: "#/components/schemas/Detection" }
+                  timing:
+                    type: object
+                    properties:
+                      decode_ms: { type: number }
+                      preprocess_ms: { type: number }
+                      inference_ms: { type: number }
+                      postprocess_ms: { type: number }
+                      total_ms: { type: number }
+        "400": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+
 components:
   requestBodies:
     ImageUpload:
@@ -200,7 +259,8 @@ components:
       description: >
         Structured error — see wiki Backend § Error schema. code is one of
         INVALID_REQUEST, MISSING_FILE, UNSUPPORTED_MEDIA_TYPE, FILE_TOO_LARGE,
-        PIXEL_LIMIT_EXCEEDED, INVALID_IMAGE, INTERNAL_ERROR.
+        PIXEL_LIMIT_EXCEEDED, INVALID_IMAGE, MODEL_NOT_READY, INFERENCE_FAILED,
+        INTERNAL_ERROR.
       content:
         application/json:
           schema:
@@ -213,6 +273,12 @@ components:
         status: { type: string }
         service: { type: string }
         version: { type: string }
+        detector:
+          type: object
+          description: Present on /ready only.
+          properties:
+            ready: { type: boolean }
+            error: { type: string, description: "Only present when ready=false." }
 
     ErrorResponse:
       type: object
@@ -224,3 +290,18 @@ components:
             code: { type: string }
             message: { type: string }
             details: { type: object }
+
+    Detection:
+      type: object
+      properties:
+        class_id: { type: integer }
+        label: { type: string, example: person }
+        confidence: { type: number }
+        box:
+          type: object
+          description: Pixel coordinates in the original (uploaded) image.
+          properties:
+            x: { type: number }
+            y: { type: number }
+            width: { type: number }
+            height: { type: number }
