@@ -26,20 +26,23 @@ float referenceSigmoid(float x) {
 }
 
 std::size_t rawOffset(int x, int y, int channel) {
-    constexpr auto channelStride = static_cast<std::size_t>(kGridSize) * static_cast<std::size_t>(kGridSize);
-    return (static_cast<std::size_t>(channel) * channelStride) + (static_cast<std::size_t>(y) * static_cast<std::size_t>(kGridSize)) +
-          static_cast<std::size_t>(x);
+    constexpr auto channelStride =
+        static_cast<std::size_t>(kGridSize) * static_cast<std::size_t>(kGridSize);
+    return (static_cast<std::size_t>(channel) * channelStride) +
+           (static_cast<std::size_t>(y) * static_cast<std::size_t>(kGridSize)) +
+           static_cast<std::size_t>(x);
 }
 
 std::vector<float> zeroedOutput() {
-    return std::vector<float>(static_cast<std::size_t>(kChannelsPerCell) * kGridSize * kGridSize, 0.0F);
+    return std::vector<float>(static_cast<std::size_t>(kChannelsPerCell) * kGridSize * kGridSize,
+                              0.0F);
 }
 
 // Writes one box's raw (tx, ty, tw, th, objectness) plus a one-hot-ish class
 // score vector (classScore at `classIndex`, everything else 0) into `raw` at
 // grid cell (cx, cy), box index `box`.
-void writeBox(std::vector<float>& raw, int cx, int cy, int box, float tx, float ty, float tw, float th,
-             float objectness, int classIndex, float classScore) {
+void writeBox(std::vector<float>& raw, int cx, int cy, int box, float tx, float ty, float tw,
+              float th, float objectness, int classIndex, float classScore) {
     const int channel = box * kValuesPerBox;
     raw[rawOffset(cx, cy, channel + 0)] = tx;
     raw[rawOffset(cx, cy, channel + 1)] = ty;
@@ -81,8 +84,8 @@ TEST(PostprocessTest, DecodesASingleConfidentBoxWithExpectedGeometry) {
     EXPECT_EQ(detection.label, std::string{kClassLabels[classIndex]});
 
     // Reference softmax over {classScore, 0, 0, ..., 0} (kNumClasses-1 zeros).
-    const float sumExp = std::exp(classScore - classScore) + (static_cast<float>(kNumClasses) - 1.0F) *
-                                                                  std::exp(0.0F - classScore);
+    const float sumExp = std::exp(classScore - classScore) +
+                         (static_cast<float>(kNumClasses) - 1.0F) * std::exp(0.0F - classScore);
     const float expectedClassProb = 1.0F / sumExp;
     const float expectedScore = referenceSigmoid(objectness) * expectedClassProb;
     EXPECT_NEAR(detection.confidence, expectedScore, 1e-4F);
@@ -90,7 +93,8 @@ TEST(PostprocessTest, DecodesASingleConfidentBoxWithExpectedGeometry) {
     const float centerX = (static_cast<float>(cx) + referenceSigmoid(tx)) * kCellSize;
     const float centerY = (static_cast<float>(cy) + referenceSigmoid(ty)) * kCellSize;
     const float width = std::exp(tw) * kCellSize * kAnchors[static_cast<std::size_t>(box) * 2];
-    const float height = std::exp(th) * kCellSize * kAnchors[(static_cast<std::size_t>(box) * 2) + 1];
+    const float height =
+        std::exp(th) * kCellSize * kAnchors[(static_cast<std::size_t>(box) * 2) + 1];
     const float expectedLeft = centerX - (width / 2.0F);
     const float expectedTop = centerY - (height / 2.0F);
 

@@ -27,7 +27,8 @@ TEST(NmsTest, SuppressesLowerConfidenceOverlapOfSameClass) {
 TEST(NmsTest, KeepsOverlappingBoxesOfDifferentClasses) {
     std::vector<Detection> detections{
         makeDetection(0, 0.9F, BoundingBox{0.0F, 0.0F, 10.0F, 10.0F}),
-        makeDetection(1, 0.8F, BoundingBox{0.0F, 0.0F, 10.0F, 10.0F}),  // identical box, different class
+        makeDetection(1, 0.8F,
+                      BoundingBox{0.0F, 0.0F, 10.0F, 10.0F}),  // identical box, different class
     };
     const auto result = nonMaxSuppression(std::move(detections), 0.5F, 100);
     EXPECT_EQ(result.size(), 2U);

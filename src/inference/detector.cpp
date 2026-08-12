@@ -26,11 +26,11 @@ std::wstring toWidePath(const std::string& utf8Path) {
     if (utf8Path.empty()) {
         return {};
     }
-    const int requiredChars =
-        MultiByteToWideChar(CP_UTF8, 0, utf8Path.c_str(), static_cast<int>(utf8Path.size()), nullptr, 0);
+    const int requiredChars = MultiByteToWideChar(CP_UTF8, 0, utf8Path.c_str(),
+                                                  static_cast<int>(utf8Path.size()), nullptr, 0);
     std::wstring wide(static_cast<std::size_t>(requiredChars), L'\0');
-    MultiByteToWideChar(CP_UTF8, 0, utf8Path.c_str(), static_cast<int>(utf8Path.size()), wide.data(),
-                        requiredChars);
+    MultiByteToWideChar(CP_UTF8, 0, utf8Path.c_str(), static_cast<int>(utf8Path.size()),
+                        wide.data(), requiredChars);
     return wide;
 }
 #endif
@@ -83,12 +83,14 @@ std::string_view Detector::loadError() const noexcept {
     return impl_->loadError;
 }
 
-DetectionResult Detector::detect(const cv::Mat& decodedImage, const DetectionOptions& options) const {
+DetectionResult Detector::detect(const cv::Mat& decodedImage,
+                                 const DetectionOptions& options) const {
     common::Stopwatch preprocessWatch;
     std::vector<float> inputTensor = preprocessForTinyYolov2(decodedImage);
     const double preprocessMs = preprocessWatch.elapsedMs();
 
-    constexpr std::array<std::int64_t, 4> inputShape{1, 3, tiny_yolov2::kInputSize, tiny_yolov2::kInputSize};
+    constexpr std::array<std::int64_t, 4> inputShape{1, 3, tiny_yolov2::kInputSize,
+                                                     tiny_yolov2::kInputSize};
 
     Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
     Ort::Value inputTensorValue = Ort::Value::CreateTensor<float>(
@@ -98,17 +100,17 @@ DetectionResult Detector::detect(const cv::Mat& decodedImage, const DetectionOpt
     const std::array<const char*, 1> outputNames{impl_->outputName.c_str()};
 
     common::Stopwatch inferenceWatch;
-    auto outputTensors = impl_->session->Run(Ort::RunOptions{nullptr}, inputNames.data(), &inputTensorValue, 1,
-                                             outputNames.data(), 1);
+    auto outputTensors = impl_->session->Run(Ort::RunOptions{nullptr}, inputNames.data(),
+                                             &inputTensorValue, 1, outputNames.data(), 1);
     const double inferenceMs = inferenceWatch.elapsedMs();
 
     const float* rawOutput = outputTensors.front().GetTensorData<float>();
     const auto outputCount = outputTensors.front().GetTensorTypeAndShapeInfo().GetElementCount();
 
     common::Stopwatch postprocessWatch;
-    auto rawDetections = decodeTinyYolov2Output(std::span<const float>(rawOutput, outputCount),
-                                                imaging::Dimensions{decodedImage.cols, decodedImage.rows},
-                                                options.confidenceThreshold);
+    auto rawDetections = decodeTinyYolov2Output(
+        std::span<const float>(rawOutput, outputCount),
+        imaging::Dimensions{decodedImage.cols, decodedImage.rows}, options.confidenceThreshold);
     auto finalDetections =
         nonMaxSuppression(std::move(rawDetections), options.iouThreshold, options.maxDetections);
     const double postprocessMs = postprocessWatch.elapsedMs();

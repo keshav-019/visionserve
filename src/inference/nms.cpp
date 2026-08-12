@@ -28,7 +28,7 @@ float intersectionOverUnion(const BoundingBox& a, const BoundingBox& b) {
 std::vector<Detection> nonMaxSuppression(std::vector<Detection> detections, float iouThreshold,
                                          int maxDetections) {
     std::sort(detections.begin(), detections.end(),
-             [](const Detection& a, const Detection& b) { return a.confidence > b.confidence; });
+              [](const Detection& a, const Detection& b) { return a.confidence > b.confidence; });
 
     std::vector<Detection> kept;
     std::vector<bool> suppressed(detections.size(), false);

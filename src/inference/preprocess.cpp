@@ -36,14 +36,16 @@ std::vector<float> preprocessForTinyYolov2(const cv::Mat& decodedImage) {
     rgb.convertTo(floatImage, CV_32FC3);
 
     std::vector<float> tensor(3ULL * kInputSize * kInputSize);
-    const auto channelStride = static_cast<std::size_t>(kInputSize) * static_cast<std::size_t>(kInputSize);
+    const auto channelStride =
+        static_cast<std::size_t>(kInputSize) * static_cast<std::size_t>(kInputSize);
 
     for (int y = 0; y < kInputSize; ++y) {
         const auto* row = floatImage.ptr<cv::Vec3f>(y);
         for (int x = 0; x < kInputSize; ++x) {
             const cv::Vec3f& pixel = row[x];
-            const auto pixelIndex = static_cast<std::size_t>(y) * static_cast<std::size_t>(kInputSize) +
-                                    static_cast<std::size_t>(x);
+            const auto pixelIndex =
+                static_cast<std::size_t>(y) * static_cast<std::size_t>(kInputSize) +
+                static_cast<std::size_t>(x);
             tensor[(0 * channelStride) + pixelIndex] = pixel[0];  // R
             tensor[(1 * channelStride) + pixelIndex] = pixel[1];  // G
             tensor[(2 * channelStride) + pixelIndex] = pixel[2];  // B

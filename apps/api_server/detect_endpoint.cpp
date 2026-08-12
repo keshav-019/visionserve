@@ -18,8 +18,8 @@
 namespace visionserve::api {
 namespace {
 
-using drogon::HttpRequestPtr;
 using common::Stopwatch;
+using drogon::HttpRequestPtr;
 using errors::ErrorCode;
 using inference::Detection;
 using inference::DetectionOptions;
@@ -31,8 +31,8 @@ using inference::DetectionResult;
 constexpr std::string_view kModelName = "tiny-yolov2";
 constexpr std::string_view kModelVersion = "opset8";
 
-float clampedFloatParam(drogon::MultiPartParser& parser, const std::string& name, float defaultValue,
-                        float minValue, float maxValue) {
+float clampedFloatParam(drogon::MultiPartParser& parser, const std::string& name,
+                        float defaultValue, float minValue, float maxValue) {
     const auto value = parser.getOptionalParameter<float>(name).value_or(defaultValue);
     return std::clamp(value, minValue, maxValue);
 }
@@ -55,8 +55,8 @@ void handleDetect(const HttpRequestPtr& req, ResponseCallback&& callback) {
 
     auto& detector = detectorInstance();
     if (!detector.isReady()) {
-        callback(makeErrorResponse(requestId, drogon::k503ServiceUnavailable, ErrorCode::ModelNotReady,
-                                   "the detection model is not ready"));
+        callback(makeErrorResponse(requestId, drogon::k503ServiceUnavailable,
+                                   ErrorCode::ModelNotReady, "the detection model is not ready"));
         return;
     }
 
@@ -71,19 +71,20 @@ void handleDetect(const HttpRequestPtr& req, ResponseCallback&& callback) {
     }
 
     DetectionOptions options;
-    options.confidenceThreshold = clampedFloatParam(parser, "confidence_threshold",
-                                                     options.confidenceThreshold, 0.0F, 1.0F);
+    options.confidenceThreshold =
+        clampedFloatParam(parser, "confidence_threshold", options.confidenceThreshold, 0.0F, 1.0F);
     options.iouThreshold =
         clampedFloatParam(parser, "iou_threshold", options.iouThreshold, 0.0F, 1.0F);
-    options.maxDetections =
-        std::max(0, parser.getOptionalParameter<int>("max_detections").value_or(options.maxDetections));
+    options.maxDetections = std::max(
+        0, parser.getOptionalParameter<int>("max_detections").value_or(options.maxDetections));
     const bool includeTiming = parser.getOptionalParameter<int>("include_timing").value_or(1) != 0;
 
     DetectionResult result;
     try {
         result = detector.detect(decoded->mat, options);
     } catch (const std::exception& e) {
-        callback(makeErrorResponse(requestId, drogon::k500InternalServerError, ErrorCode::InferenceFailed,
+        callback(makeErrorResponse(requestId, drogon::k500InternalServerError,
+                                   ErrorCode::InferenceFailed,
                                    std::string{"inference failed: "} + e.what()));
         return;
     }

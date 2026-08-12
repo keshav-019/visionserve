@@ -14,9 +14,9 @@ using common::Stopwatch;
 using errors::ErrorCode;
 
 std::optional<UploadedImage> extractUploadedImage(const drogon::HttpRequestPtr& req,
-                                                   drogon::MultiPartParser& parser,
-                                                   const std::string& requestId,
-                                                   const ResponseCallback& callback) {
+                                                  drogon::MultiPartParser& parser,
+                                                  const std::string& requestId,
+                                                  const ResponseCallback& callback) {
     if (parser.parse(req) != 0) {
         callback(makeErrorResponse(requestId, drogon::k400BadRequest, ErrorCode::InvalidRequest,
                                    "could not parse multipart/form-data body"));

@@ -15,10 +15,12 @@ namespace visionserve::inference::tiny_yolov2 {
 
 inline constexpr int kInputSize = 416;
 inline constexpr int kGridSize = 13;
-inline constexpr float kCellSize = static_cast<float>(kInputSize) / static_cast<float>(kGridSize);  // 32
+inline constexpr float kCellSize =
+    static_cast<float>(kInputSize) / static_cast<float>(kGridSize);  // 32
 inline constexpr int kNumClasses = 20;
 inline constexpr int kNumBoxesPerCell = 5;
-inline constexpr int kValuesPerBox = 5 + kNumClasses;  // tx, ty, tw, th, objectness, 20 class scores
+inline constexpr int kValuesPerBox =
+    5 + kNumClasses;  // tx, ty, tw, th, objectness, 20 class scores
 inline constexpr int kChannelsPerCell = kNumBoxesPerCell * kValuesPerBox;  // 125
 
 // Width/height pairs, one per box, in grid-cell units.
@@ -27,9 +29,9 @@ inline constexpr std::array<float, kNumBoxesPerCell * 2> kAnchors = {
 };
 
 inline constexpr std::array<std::string_view, kNumClasses> kClassLabels = {
-    "aeroplane", "bicycle", "bird",        "boat",      "bottle", "bus",   "car",   "cat",
-    "chair",     "cow",     "diningtable", "dog",       "horse",  "motorbike", "person",
-    "pottedplant", "sheep", "sofa",        "train",     "tvmonitor",
+    "aeroplane", "bicycle",     "bird",  "boat",        "bottle", "bus",       "car",
+    "cat",       "chair",       "cow",   "diningtable", "dog",    "horse",     "motorbike",
+    "person",    "pottedplant", "sheep", "sofa",        "train",  "tvmonitor",
 };
 
 }  // namespace visionserve::inference::tiny_yolov2

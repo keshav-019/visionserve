@@ -28,7 +28,8 @@ float sigmoid(float value) {
 // Softmax over kNumClasses raw scores, returning (bestClassIndex, bestProb)
 // without materializing the full normalized vector — only the argmax is
 // needed by the caller.
-std::pair<int, float> softmaxArgmax(const std::array<float, static_cast<std::size_t>(kNumClasses)>& rawScores) {
+std::pair<int, float> softmaxArgmax(
+    const std::array<float, static_cast<std::size_t>(kNumClasses)>& rawScores) {
     const float maxVal = *std::max_element(rawScores.begin(), rawScores.end());
     std::array<float, static_cast<std::size_t>(kNumClasses)> expVals{};
     float sum = 0.0F;
@@ -51,9 +52,11 @@ std::pair<int, float> softmaxArgmax(const std::array<float, static_cast<std::siz
 // Maps a (grid x, grid y, channel) triple onto the raw tensor's flat,
 // channel-major index: channel*169 + y*13 + x.
 std::size_t offset(int x, int y, int channel) {
-    constexpr auto channelStride = static_cast<std::size_t>(kGridSize) * static_cast<std::size_t>(kGridSize);
-    return (static_cast<std::size_t>(channel) * channelStride) + (static_cast<std::size_t>(y) * static_cast<std::size_t>(kGridSize)) +
-          static_cast<std::size_t>(x);
+    constexpr auto channelStride =
+        static_cast<std::size_t>(kGridSize) * static_cast<std::size_t>(kGridSize);
+    return (static_cast<std::size_t>(channel) * channelStride) +
+           (static_cast<std::size_t>(y) * static_cast<std::size_t>(kGridSize)) +
+           static_cast<std::size_t>(x);
 }
 
 }  // namespace
@@ -79,7 +82,8 @@ std::vector<Detection> decodeTinyYolov2Output(std::span<const float> rawOutput,
 
                 std::array<float, static_cast<std::size_t>(kNumClasses)> classScores{};
                 for (int c = 0; c < kNumClasses; ++c) {
-                    classScores[static_cast<std::size_t>(c)] = rawOutput[offset(cx, cy, channel + 5 + c)];
+                    classScores[static_cast<std::size_t>(c)] =
+                        rawOutput[offset(cx, cy, channel + 5 + c)];
                 }
 
                 const float objectness = sigmoid(tObjectness);
