@@ -21,7 +21,8 @@ using Handler = std::function<void(const drogon::HttpRequestPtr&, ResponseCallba
 // error page. `callback` is copied (not moved) into the try block so it's
 // still valid and callable from the catch blocks.
 inline Handler makeSafe(Handler handler) {
-    return [handler = std::move(handler)](const drogon::HttpRequestPtr& req, ResponseCallback&& callback) {
+    return [handler = std::move(handler)](const drogon::HttpRequestPtr& req,
+                                          ResponseCallback&& callback) {
         const auto requestId = requestIdFor(req);
         try {
             handler(req, ResponseCallback{callback});

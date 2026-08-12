@@ -1,10 +1,9 @@
 #pragma once
 
 #include <memory>
+#include <opencv2/core.hpp>
 #include <string>
 #include <string_view>
-
-#include <opencv2/core.hpp>
 
 #include "visionserve/inference/types.hpp"
 
@@ -16,7 +15,7 @@ namespace visionserve::inference {
 // from multiple threads on the same session, so a single Detector instance
 // is shared across Drogon's request handlers rather than one per request.
 class Detector {
-public:
+   public:
     explicit Detector(const std::string& modelPath);
     ~Detector();
 
@@ -39,7 +38,7 @@ public:
     // Human-readable reason isReady() is false; empty once loaded.
     [[nodiscard]] std::string_view loadError() const noexcept;
 
-private:
+   private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };

@@ -60,8 +60,8 @@ TEST(DetectEndpointTest, MaxDetectionsCapsTheResultCount) {
 }
 
 TEST(DetectEndpointTest, IncludeTimingFalseOmitsTheTimingBlock) {
-    auto resp = postFile("/v1/detect", makeSyntheticJpeg(64, 48), "test.jpg",
-                         {{"include_timing", "0"}});
+    auto resp =
+        postFile("/v1/detect", makeSyntheticJpeg(64, 48), "test.jpg", {{"include_timing", "0"}});
     ASSERT_TRUE(resp);
     ASSERT_EQ(resp->statusCode(), drogon::k200OK);
     auto json = resp->getJsonObject();

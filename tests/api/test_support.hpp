@@ -26,8 +26,8 @@ drogon::HttpClientPtr client();
 
 std::vector<uchar> makeSyntheticJpeg(int width = 64, int height = 48);
 
-drogon::HttpResponsePtr postFile(const std::string& path, const std::vector<uchar>& bytes,
-                                 const std::string& fileName,
-                                 const std::vector<std::pair<std::string, std::string>>& params = {});
+drogon::HttpResponsePtr postFile(
+    const std::string& path, const std::vector<uchar>& bytes, const std::string& fileName,
+    const std::vector<std::pair<std::string, std::string>>& params = {});
 
 }  // namespace visionserve::api::testing_support

@@ -23,7 +23,8 @@ TEST(PreprocessTest, ConvertsBgrToRgbChannelOrder) {
     const cv::Mat bgr(kInputSize, kInputSize, CV_8UC3, cv::Scalar(10, 20, 30));
     const auto tensor = preprocessForTinyYolov2(bgr);
 
-    const auto channelStride = static_cast<std::size_t>(kInputSize) * static_cast<std::size_t>(kInputSize);
+    const auto channelStride =
+        static_cast<std::size_t>(kInputSize) * static_cast<std::size_t>(kInputSize);
     const std::size_t midPixel = channelStride / 2;
 
     EXPECT_NEAR(tensor[(0 * channelStride) + midPixel], 30.0F, 1.0F);  // R
@@ -36,7 +37,8 @@ TEST(PreprocessTest, HandlesGrayscaleInput) {
     const auto tensor = preprocessForTinyYolov2(gray);
     ASSERT_EQ(tensor.size(), static_cast<std::size_t>(3 * kInputSize * kInputSize));
 
-    const auto channelStride = static_cast<std::size_t>(kInputSize) * static_cast<std::size_t>(kInputSize);
+    const auto channelStride =
+        static_cast<std::size_t>(kInputSize) * static_cast<std::size_t>(kInputSize);
     const std::size_t midPixel = channelStride / 2;
     EXPECT_NEAR(tensor[(0 * channelStride) + midPixel], 128.0F, 1.0F);
     EXPECT_NEAR(tensor[(1 * channelStride) + midPixel], 128.0F, 1.0F);

@@ -24,9 +24,9 @@
 namespace visionserve::api {
 namespace {
 
+using common::Stopwatch;
 using drogon::HttpRequestPtr;
 using drogon::HttpResponsePtr;
-using common::Stopwatch;
 using errors::ErrorCode;
 
 std::optional<std::string> parseOutputFormat(drogon::MultiPartParser& parser,
