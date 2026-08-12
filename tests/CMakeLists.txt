@@ -20,3 +20,4 @@ gtest_discover_tests(visionserve_concurrency_tests)
 
 add_subdirectory(api)
 add_subdirectory(imaging)
+add_subdirectory(inference)

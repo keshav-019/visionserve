@@ -33,4 +33,22 @@ void logRequest(std::string_view method, std::string_view path, int statusCode,
     spdlog::info(Json::writeString(writer, entry));
 }
 
+void logModelLoad(std::string_view modelPath, bool success, std::string_view error) {
+    Json::Value entry;
+    entry["level"] = success ? "info" : "error";
+    entry["event"] = "model_load";
+    entry["model_path"] = std::string{modelPath};
+    entry["success"] = success;
+    entry["error"] = std::string{error};
+
+    Json::StreamWriterBuilder writer;
+    writer["indentation"] = "";
+    const auto line = Json::writeString(writer, entry);
+    if (success) {
+        spdlog::info(line);
+    } else {
+        spdlog::error(line);
+    }
+}
+
 }  // namespace visionserve::telemetry

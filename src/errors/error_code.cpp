@@ -16,6 +16,10 @@ std::string_view errorCodeName(ErrorCode code) {
             return "PIXEL_LIMIT_EXCEEDED";
         case ErrorCode::InvalidImage:
             return "INVALID_IMAGE";
+        case ErrorCode::ModelNotReady:
+            return "MODEL_NOT_READY";
+        case ErrorCode::InferenceFailed:
+            return "INFERENCE_FAILED";
         case ErrorCode::InternalError:
             return "INTERNAL_ERROR";
     }
