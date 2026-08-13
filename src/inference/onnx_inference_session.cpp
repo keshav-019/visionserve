@@ -1,18 +1,9 @@
-#include "visionserve/inference/detector.hpp"
+#include "visionserve/inference/onnx_inference_session.hpp"
 
 #include <onnxruntime_cxx_api.h>
 
 #include <array>
-#include <cstdint>
 #include <optional>
-#include <span>
-#include <utility>
-
-#include "tiny_yolov2_constants.hpp"
-#include "visionserve/common/timing.hpp"
-#include "visionserve/inference/nms.hpp"
-#include "visionserve/inference/postprocess.hpp"
-#include "visionserve/inference/preprocess.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -37,7 +28,7 @@ std::wstring toWidePath(const std::string& utf8Path) {
 
 }  // namespace
 
-struct Detector::Impl {
+struct OnnxInferenceSession::Impl {
     Ort::Env env{ORT_LOGGING_LEVEL_WARNING, "visionserve"};
     Ort::SessionOptions sessionOptions;
     std::optional<Ort::Session> session;
@@ -47,7 +38,8 @@ struct Detector::Impl {
     std::string loadError;
 };
 
-Detector::Detector(const std::string& modelPath) : impl_(std::make_unique<Impl>()) {
+OnnxInferenceSession::OnnxInferenceSession(const std::string& modelPath)
+    : impl_(std::make_unique<Impl>()) {
     try {
         impl_->sessionOptions.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
 
@@ -71,54 +63,43 @@ Detector::Detector(const std::string& modelPath) : impl_(std::make_unique<Impl>(
     }
 }
 
-Detector::~Detector() = default;
-Detector::Detector(Detector&&) noexcept = default;
-Detector& Detector::operator=(Detector&&) noexcept = default;
+OnnxInferenceSession::~OnnxInferenceSession() = default;
+OnnxInferenceSession::OnnxInferenceSession(OnnxInferenceSession&&) noexcept = default;
+OnnxInferenceSession& OnnxInferenceSession::operator=(OnnxInferenceSession&&) noexcept = default;
 
-bool Detector::isReady() const noexcept {
+bool OnnxInferenceSession::isReady() const noexcept {
     return impl_ != nullptr && impl_->ready;
 }
 
-std::string_view Detector::loadError() const noexcept {
+std::string_view OnnxInferenceSession::loadError() const noexcept {
     return impl_->loadError;
 }
 
-DetectionResult Detector::detect(const cv::Mat& decodedImage,
-                                 const DetectionOptions& options) const {
-    common::Stopwatch preprocessWatch;
-    std::vector<float> inputTensor = preprocessForTinyYolov2(decodedImage);
-    const double preprocessMs = preprocessWatch.elapsedMs();
-
-    constexpr std::array<std::int64_t, 4> inputShape{1, 3, tiny_yolov2::kInputSize,
-                                                     tiny_yolov2::kInputSize};
-
+Tensor OnnxInferenceSession::run(const Tensor& input) const {
     Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-    Ort::Value inputTensorValue = Ort::Value::CreateTensor<float>(
-        memoryInfo, inputTensor.data(), inputTensor.size(), inputShape.data(), inputShape.size());
+    // const_cast: CreateTensor takes a non-const data pointer (it wraps the
+    // buffer rather than copying it), but never writes through it for an
+    // input tensor. `input` is a const& because the interface promises
+    // callers their argument isn't modified.
+    Ort::Value inputTensorValue =
+        Ort::Value::CreateTensor<float>(memoryInfo, const_cast<float*>(input.data.data()),
+                                        input.data.size(), input.shape.data(), input.shape.size());
 
     const std::array<const char*, 1> inputNames{impl_->inputName.c_str()};
     const std::array<const char*, 1> outputNames{impl_->outputName.c_str()};
 
-    common::Stopwatch inferenceWatch;
     auto outputTensors = impl_->session->Run(Ort::RunOptions{nullptr}, inputNames.data(),
                                              &inputTensorValue, 1, outputNames.data(), 1);
-    const double inferenceMs = inferenceWatch.elapsedMs();
 
-    const float* rawOutput = outputTensors.front().GetTensorData<float>();
-    const auto outputCount = outputTensors.front().GetTensorTypeAndShapeInfo().GetElementCount();
+    const Ort::Value& outputValue = outputTensors.front();
+    const float* rawOutput = outputValue.GetTensorData<float>();
+    const auto typeAndShape = outputValue.GetTensorTypeAndShapeInfo();
+    const auto elementCount = typeAndShape.GetElementCount();
 
-    common::Stopwatch postprocessWatch;
-    auto rawDetections = decodeTinyYolov2Output(
-        std::span<const float>(rawOutput, outputCount),
-        imaging::Dimensions{decodedImage.cols, decodedImage.rows}, options.confidenceThreshold);
-    auto finalDetections =
-        nonMaxSuppression(std::move(rawDetections), options.iouThreshold, options.maxDetections);
-    const double postprocessMs = postprocessWatch.elapsedMs();
-
-    DetectionResult result;
-    result.detections = std::move(finalDetections);
-    result.timing = DetectionTiming{preprocessMs, inferenceMs, postprocessMs};
-    return result;
+    Tensor output;
+    output.data.assign(rawOutput, rawOutput + elementCount);
+    output.shape = typeAndShape.GetShape();
+    return output;
 }
 
 }  // namespace visionserve::inference

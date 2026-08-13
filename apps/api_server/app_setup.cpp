@@ -11,9 +11,8 @@
 #include <vector>
 
 #include "detect_endpoint.hpp"
-#include "detector_instance.hpp"
+#include "detection_registry.hpp"
 #include "image_endpoints.hpp"
-#include "model_config.hpp"
 #include "request_context.hpp"
 #include "upload_limits.hpp"
 #include "visionserve/common/timing.hpp"
@@ -40,14 +39,14 @@ Json::Value makeStatusBody(std::string_view status) {
 // "https://visionserve.vercel.app,http://localhost:8080". Defaults to "*" (open) so the
 // local dev server and preview deployments work out of the box; tighten this in production
 // via the VISIONSERVE_CORS_ORIGINS environment variable (see Phase 21 security hardening).
-const std::vector<std::string> &allowedOrigins() {
+const std::vector<std::string>& allowedOrigins() {
     static const std::vector<std::string> origins =
         config::getEnvListOr("VISIONSERVE_CORS_ORIGINS", {"*"});
     return origins;
 }
 
-std::optional<std::string> resolveAllowedOrigin(const std::string &requestOrigin) {
-    const auto &origins = allowedOrigins();
+std::optional<std::string> resolveAllowedOrigin(const std::string& requestOrigin) {
+    const auto& origins = allowedOrigins();
     if (std::find(origins.begin(), origins.end(), "*") != origins.end()) {
         return "*";
     }
@@ -60,7 +59,7 @@ std::optional<std::string> resolveAllowedOrigin(const std::string &requestOrigin
     return std::nullopt;
 }
 
-void applyCorsHeaders(const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp) {
+void applyCorsHeaders(const drogon::HttpRequestPtr& req, const drogon::HttpResponsePtr& resp) {
     const auto origin = resolveAllowedOrigin(req->getHeader("Origin"));
     if (!origin) {
         return;
@@ -72,9 +71,9 @@ void applyCorsHeaders(const drogon::HttpRequestPtr &req, const drogon::HttpRespo
 }
 
 void registerCors() {
-    drogon::app().registerPreRoutingAdvice([](const drogon::HttpRequestPtr &req,
-                                              drogon::AdviceCallback &&adviceCallback,
-                                              drogon::AdviceChainCallback &&adviceChainCallback) {
+    drogon::app().registerPreRoutingAdvice([](const drogon::HttpRequestPtr& req,
+                                              drogon::AdviceCallback&& adviceCallback,
+                                              drogon::AdviceChainCallback&& adviceChainCallback) {
         if (req->method() != drogon::Options) {
             adviceChainCallback();
             return;
@@ -91,7 +90,7 @@ void registerCors() {
     });
 
     drogon::app().registerPostHandlingAdvice(
-        [](const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp) {
+        [](const drogon::HttpRequestPtr& req, const drogon::HttpResponsePtr& resp) {
             applyCorsHeaders(req, resp);
         });
 }
@@ -101,12 +100,12 @@ void registerCors() {
 // reads it back). Also stamped onto every response as X-Request-Id so it's
 // visible even for endpoints that don't echo it in a JSON body.
 void registerRequestId() {
-    drogon::app().registerPreRoutingAdvice([](const drogon::HttpRequestPtr &req) {
+    drogon::app().registerPreRoutingAdvice([](const drogon::HttpRequestPtr& req) {
         req->attributes()->insert(std::string{kRequestIdAttribute}, generateRequestId());
     });
 
     drogon::app().registerPostHandlingAdvice(
-        [](const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp) {
+        [](const drogon::HttpRequestPtr& req, const drogon::HttpResponsePtr& resp) {
             resp->addHeader("X-Request-Id", requestIdFor(req));
         });
 }
@@ -116,13 +115,13 @@ void registerRequestId() {
 constexpr std::string_view kRequestStartAttribute = "visionserve_request_start";
 
 void registerRequestLogging() {
-    drogon::app().registerPreRoutingAdvice([](const drogon::HttpRequestPtr &req) {
+    drogon::app().registerPreRoutingAdvice([](const drogon::HttpRequestPtr& req) {
         req->attributes()->insert(std::string{kRequestStartAttribute}, common::Stopwatch{});
     });
 
     drogon::app().registerPostHandlingAdvice(
-        [](const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp) {
-            const auto &stopwatch =
+        [](const drogon::HttpRequestPtr& req, const drogon::HttpResponsePtr& resp) {
+            const auto& stopwatch =
                 req->attributes()->get<common::Stopwatch>(std::string{kRequestStartAttribute});
             telemetry::logRequest(req->methodString(), req->path(),
                                   static_cast<int>(resp->statusCode()), requestIdFor(req),
@@ -134,8 +133,8 @@ void registerSystemEndpoints() {
     // GET /health — liveness: process is running.
     drogon::app().registerHandler(
         "/health",
-        [](const drogon::HttpRequestPtr &,
-           std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+        [](const drogon::HttpRequestPtr&,
+           std::function<void(const drogon::HttpResponsePtr&)>&& callback) {
             auto resp = drogon::HttpResponse::newHttpJsonResponse(makeStatusBody("ok"));
             callback(resp);
         },
@@ -147,13 +146,15 @@ void registerSystemEndpoints() {
     // from /health instead of mirroring it.
     drogon::app().registerHandler(
         "/ready",
-        [](const drogon::HttpRequestPtr &,
-           std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
-            const bool ready = detectorInstance().isReady();
+        [](const drogon::HttpRequestPtr&,
+           std::function<void(const drogon::HttpResponsePtr&)>&& callback) {
+            const auto model = detectionModelRegistry().defaultModel();
+            const bool ready = model && model->isReady();
             auto body = makeStatusBody(ready ? "ready" : "not_ready");
             body["detector"]["ready"] = ready;
             if (!ready) {
-                body["detector"]["error"] = std::string{detectorInstance().loadError()};
+                body["detector"]["error"] =
+                    model ? std::string{model->loadError()} : "no detection model is registered";
             }
             auto resp = drogon::HttpResponse::newHttpJsonResponse(body);
             resp->setStatusCode(ready ? drogon::k200OK : drogon::k503ServiceUnavailable);
@@ -164,8 +165,8 @@ void registerSystemEndpoints() {
     // GET /version
     drogon::app().registerHandler(
         "/version",
-        [](const drogon::HttpRequestPtr &,
-           std::function<void(const drogon::HttpResponsePtr &)> &&callback) {
+        [](const drogon::HttpRequestPtr&,
+           std::function<void(const drogon::HttpResponsePtr&)>&& callback) {
             Json::Value body;
             body["service"] = std::string{kServiceName};
             body["version"] = std::string{kVersion};
@@ -184,12 +185,14 @@ void registerSystemEndpoints() {
 void configureVisionServeApp() {
     telemetry::initLogger();
 
-    // Forces the model load now (Detector's constructor runs on first
-    // access to the Meyer's singleton in detectorInstance()) rather than
-    // lazily on the first /v1/detect request, so GET /ready reflects the
-    // real outcome immediately after startup.
-    const auto &detector = detectorInstance();
-    telemetry::logModelLoad(modelPath(), detector.isReady(), detector.loadError());
+    // Forces the model load now (the registry builds its models on first
+    // access to the Meyer's singleton in detectionModelRegistry()) rather
+    // than lazily on the first /v1/detect request, so GET /ready reflects
+    // the real outcome immediately after startup.
+    const auto model = detectionModelRegistry().defaultModel();
+    if (model) {
+        telemetry::logModelLoad(model->metadata().id, model->isReady(), model->loadError());
+    }
 
     registerRequestId();
     registerRequestLogging();

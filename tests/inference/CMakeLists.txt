@@ -1,6 +1,8 @@
 add_executable(
     visionserve_inference_tests
+    model_registry_test.cpp
     nms_test.cpp
+    pipeline_model_test.cpp
     postprocess_test.cpp
     preprocess_test.cpp
 )

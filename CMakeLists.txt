@@ -190,18 +190,21 @@ visionserve_apply_sanitizers(visionserve_imaging)
 include(cmake/onnxruntime.cmake)
 include(cmake/models.cmake)
 
-# Preprocessing (image -> tensor), postprocessing (tensor -> detections), NMS,
-# and the ONNX Runtime session wrapper for the tiny-yolov2 detector (Phase 4).
-# Preprocess/postprocess/NMS are pure functions with no ONNX Runtime
-# dependency of their own, so they're unit-tested directly; Detector is the
-# only piece that touches onnxruntime::onnxruntime.
+# Phase 4's detection math (preprocess/postprocess/NMS, pure functions with
+# no ONNX Runtime dependency, unit-tested directly) plus the Phase 5
+# inference abstraction layer: IPreprocessor/IInferenceSession/
+# IPostprocessor/IModel interfaces, the generic PipelineModel orchestrator,
+# and the concrete tiny-yolov2 adapters. OnnxInferenceSession is the only
+# piece that touches onnxruntime::onnxruntime.
 add_library(
     visionserve_inference
     STATIC
-    src/inference/detector.cpp
     src/inference/nms.cpp
+    src/inference/onnx_inference_session.cpp
     src/inference/postprocess.cpp
     src/inference/preprocess.cpp
+    src/inference/tiny_yolov2_postprocessor.cpp
+    src/inference/tiny_yolov2_preprocessor.cpp
 )
 
 target_include_directories(
@@ -289,7 +292,8 @@ add_library(
     STATIC
     apps/api_server/app_setup.cpp
     apps/api_server/detect_endpoint.cpp
-    apps/api_server/detector_instance.cpp
+    apps/api_server/detection_registry.cpp
+    apps/api_server/detection_result_serializer.cpp
     apps/api_server/error_response.cpp
     apps/api_server/image_endpoints.cpp
     apps/api_server/model_config.cpp

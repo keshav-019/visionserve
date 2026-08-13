@@ -5,15 +5,15 @@
 
 #include <algorithm>
 #include <string>
-#include <string_view>
 
-#include "detector_instance.hpp"
+#include "detection_model.hpp"
+#include "detection_registry.hpp"
+#include "detection_result_serializer.hpp"
 #include "error_response.hpp"
 #include "request_context.hpp"
 #include "safe_handler.hpp"
 #include "upload_pipeline.hpp"
 #include "visionserve/common/timing.hpp"
-#include "visionserve/inference/detector.hpp"
 
 namespace visionserve::api {
 namespace {
@@ -21,15 +21,8 @@ namespace {
 using common::Stopwatch;
 using drogon::HttpRequestPtr;
 using errors::ErrorCode;
-using inference::Detection;
 using inference::DetectionOptions;
 using inference::DetectionResult;
-
-// The only model this build serves today; "version" is the ONNX opset the
-// downloaded artifact was exported with (see cmake/models.cmake). Revisit
-// once the model registry (Phase 13) makes both selectable/dynamic.
-constexpr std::string_view kModelName = "tiny-yolov2";
-constexpr std::string_view kModelVersion = "opset8";
 
 float clampedFloatParam(drogon::MultiPartParser& parser, const std::string& name,
                         float defaultValue, float minValue, float maxValue) {
@@ -37,26 +30,15 @@ float clampedFloatParam(drogon::MultiPartParser& parser, const std::string& name
     return std::clamp(value, minValue, maxValue);
 }
 
-Json::Value detectionToJson(const Detection& detection) {
-    Json::Value entry;
-    entry["class_id"] = detection.classId;
-    entry["label"] = detection.label;
-    entry["confidence"] = detection.confidence;
-    entry["box"]["x"] = detection.box.x;
-    entry["box"]["y"] = detection.box.y;
-    entry["box"]["width"] = detection.box.width;
-    entry["box"]["height"] = detection.box.height;
-    return entry;
-}
-
 void handleDetect(const HttpRequestPtr& req, ResponseCallback&& callback) {
     const auto requestId = requestIdFor(req);
     Stopwatch total;
 
-    auto& detector = detectorInstance();
-    if (!detector.isReady()) {
-        callback(makeErrorResponse(requestId, drogon::k503ServiceUnavailable,
-                                   ErrorCode::ModelNotReady, "the detection model is not ready"));
+    const auto model = detectionModelRegistry().defaultModel();
+    if (!model || !model->isReady()) {
+        callback(makeErrorResponse(
+            requestId, drogon::k503ServiceUnavailable, ErrorCode::ModelNotReady,
+            model ? std::string{model->loadError()} : "no detection model is registered"));
         return;
     }
 
@@ -81,7 +63,7 @@ void handleDetect(const HttpRequestPtr& req, ResponseCallback&& callback) {
 
     DetectionResult result;
     try {
-        result = detector.detect(decoded->mat, options);
+        result = model->run(decoded->mat, options);
     } catch (const std::exception& e) {
         callback(makeErrorResponse(requestId, drogon::k500InternalServerError,
                                    ErrorCode::InferenceFailed,
@@ -89,14 +71,12 @@ void handleDetect(const HttpRequestPtr& req, ResponseCallback&& callback) {
         return;
     }
 
+    const DetectionResultSerializer serializer;
     Json::Value body;
     body["request_id"] = requestId;
-    body["model"] = std::string{kModelName};
-    body["version"] = std::string{kModelVersion};
-    body["detections"] = Json::Value{Json::arrayValue};
-    for (const auto& detection : result.detections) {
-        body["detections"].append(detectionToJson(detection));
-    }
+    body["model"] = model->metadata().name;
+    body["version"] = model->metadata().version;
+    body["detections"] = serializer.serialize(result);
     if (includeTiming) {
         body["timing"]["decode_ms"] = decoded->decodeMs;
         body["timing"]["preprocess_ms"] = result.timing.preprocessMs;
