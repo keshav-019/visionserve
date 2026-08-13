@@ -3,10 +3,12 @@
 #include <string>
 #include <vector>
 
+#include "visionserve/inference/inference_timing.hpp"
+
 namespace visionserve::inference {
 
 // Top-left corner plus size, in the coordinate space of the *original*
-// (pre-resize) image passed to Detector::detect().
+// (pre-resize) image passed to IModel::run().
 struct BoundingBox {
     float x;
     float y;
@@ -27,15 +29,9 @@ struct DetectionOptions {
     int maxDetections = 100;
 };
 
-struct DetectionTiming {
-    double preprocessMs = 0.0;
-    double inferenceMs = 0.0;
-    double postprocessMs = 0.0;
-};
-
 struct DetectionResult {
     std::vector<Detection> detections;
-    DetectionTiming timing;
+    InferenceTiming timing;
 };
 
 }  // namespace visionserve::inference
