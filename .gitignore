@@ -68,7 +68,7 @@ compile_commands.json
 /_wiki_tmp*/
 
 # Claude Code local-only state
-.claude/settings.local.json
+.claude/
 
 # OS metadata
 .DS_Store
